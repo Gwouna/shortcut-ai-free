@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080808"><title>SHORTCUT AI — Video clips</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top"><a class="brand" href="#"><span class="mark">S</span> SHORTCUT <b>AI</b></a><span class="local">TRAITEMENT LOCAL · GRATUIT</span></header>
+  <main>
+    <section class="hero"><p class="eyebrow">YOUR VIDEO. YOUR BEST MOMENTS.</p><h1>Découpe tes vidéos.<br><span>Garde l’essentiel.</span></h1><p class="sub">Importe une vidéo, sélectionne tes meilleurs passages et prépare des clips verticaux directement dans ton navigateur.</p></section>
+    <section class="panel">
+      <div class="panel-head"><div><p class="eyebrow">01 / IMPORT</p><h2>Ta vidéo</h2></div><span class="tag">AUCUN ENVOI SERVEUR</span></div>
+      <label class="drop" for="file"><span class="upload">↑</span><strong>Choisir une vidéo</strong><small>MP4, MOV ou WebM · traitement sur cet appareil</small><input id="file" type="file" accept="video/*"></label>
+      <div id="videoWrap" class="video-wrap hidden"><video id="video" controls playsinline></video><div class="fileline" id="fileName"></div></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><p class="eyebrow">02 / DÉCOUPAGE</p><h2>Créer un clip</h2></div><span class="tag">FORMAT 9:16</span></div>
+      <div class="fields"><label>Début (secondes)<input id="start" type="number" min="0" step="0.1" value="0"></label><label>Fin (secondes)<input id="end" type="number" min="0" step="0.1" value="30"></label></div>
+      <div class="actions"><button id="setStart" class="btn secondary" disabled>Début = position actuelle</button><button id="setEnd" class="btn secondary" disabled>Fin = position actuelle</button></div>
+      <div class="actions"><button id="auto" class="btn secondary" disabled>✦ Suggérer des passages</button><button id="preview" class="btn secondary" disabled>Prévisualiser le clip</button></div>
+      <p id="hint" class="hint">Importe une vidéo pour commencer.</p>
+      <button id="export" class="btn primary" disabled>Exporter le clip vertical</button>
+      <div id="status" class="status" aria-live="polite"></div><a id="download" class="download hidden" download="shortcut-ai-clip.webm">Télécharger mon clip</a>
+    </section>
+    <section class="note"><strong>À savoir</strong><p>SHORTCUT AI version gratuite effectue le découpage sur ton appareil. Les suggestions automatiques sont des repères heuristiques (changements visuels), pas une analyse par IA cloud. L’export dépend des formats vidéo pris en charge par ton navigateur et peut être lent sur les grosses vidéos.</p></section>
+    <footer>SHORTCUT AI <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
+  </main><script src="app.js"></script>
+</body></html>
