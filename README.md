@@ -1,4 +1,8 @@
-# SHORTCUT AI — version gratuite, sans serveur
+# SHORTCUT AI — version 2.1
+
+Version affichée dans l’interface : **2.1**. Cette mise à jour ajoute un indicateur de version visible dans l’en-tête et le pied de page.
+
+Application gratuite, sans serveur.
 
 Cette version est une application web statique. Elle ne nécessite ni Render, ni serveur, ni clé API. Les fichiers vidéo restent dans le navigateur de l'utilisateur.
 
