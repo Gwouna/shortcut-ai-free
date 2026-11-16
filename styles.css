@@ -75,13 +75,13 @@ button:focus-visible,a:focus-visible,.drop:focus-within{outline:2px solid #bba7f
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
 
-/* V5.0 — Gaming intelligence */
-.gaming-panel{border-color:rgba(157,128,255,.3);background:radial-gradient(ellipse at 100% 0%,rgba(120,85,255,.14),transparent 42%),linear-gradient(145deg,rgba(26,22,43,.98),rgba(13,13,22,.99))}
-.gaming-tag{color:#d7caff;border-color:rgba(183,154,255,.4);background:rgba(133,91,255,.16)}
-.gaming-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:16px 0}
-.gaming-grid label{display:grid;gap:8px;color:#c6c0dc;font-size:11px;font-weight:700}
-.gaming-grid select{min-width:0;width:100%;background:#090910;color:#f5f3ff;border:1px solid #403953;border-radius:11px;padding:13px;font-size:13px;min-height:45px}
-.gaming-action{margin:0;flex:1}
+/* V6.0 — Analyse multi-contenus */
+.analysis-panel{border-color:rgba(157,128,255,.3);background:radial-gradient(ellipse at 100% 0%,rgba(120,85,255,.14),transparent 42%),linear-gradient(145deg,rgba(26,22,43,.98),rgba(13,13,22,.99))}
+.analysis-tag{color:#d7caff;border-color:rgba(183,154,255,.4);background:rgba(133,91,255,.16)}
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:16px 0}
+.analysis-grid label{display:grid;gap:8px;color:#c6c0dc;font-size:11px;font-weight:700}
+.analysis-grid select{min-width:0;width:100%;background:#090910;color:#f5f3ff;border:1px solid #403953;border-radius:11px;padding:13px;font-size:13px;min-height:45px}
+.analysis-action{margin:0;flex:1}
 .ai-transcribe{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;padding:15px;border:1px solid rgba(167,139,250,.2);border-radius:13px;background:rgba(8,8,15,.55)}
 .ai-transcribe strong,.ai-transcribe small{display:block}.ai-transcribe strong{font-size:12px;color:#f0edff}.ai-transcribe small{font-size:10px;color:#aaa4bf;margin-top:5px;line-height:1.5}
 .ai-transcribe .btn{flex:0 0 auto;max-width:165px}
@@ -91,4 +91,4 @@ button:focus-visible,a:focus-visible,.drop:focus-within{outline:2px solid #bba7f
 .transcript-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid rgba(167,139,250,.12)}
 .transcript-row span{font-size:11px;line-height:1.5;min-width:0;overflow-wrap:anywhere}
 .transcript-row .btn{flex:0 0 auto;min-height:34px;padding:7px 10px;font-size:10px}
-@media(max-width:600px){.gaming-grid{grid-template-columns:1fr}.ai-transcribe{align-items:stretch;flex-direction:column}.ai-transcribe .btn{max-width:none;width:100%}.transcript-row{align-items:flex-start;flex-direction:column}.transcript-row .btn{width:100%}}
+@media(max-width:600px){.analysis-grid{grid-template-columns:1fr}.ai-transcribe{align-items:stretch;flex-direction:column}.ai-transcribe .btn{max-width:none;width:100%}.transcript-row{align-items:flex-start;flex-direction:column}.transcript-row .btn{width:100%}}

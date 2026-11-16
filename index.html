@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#08080d"><title>SHORTCUT AI — Video clips</title>
-  <link rel="stylesheet" href="styles.css?v=5.0">
+  <link rel="stylesheet" href="styles.css?v=6.0">
 </head>
 <body>
   <header class="top">
@@ -11,9 +11,9 @@
     <div class="top-meta"><span class="local">TRAITEMENT LOCAL · GRATUIT</span></div>
   </header>
   <main>
-    <section class="hero"><p class="eyebrow">YOUR VIDEO. YOUR BEST MOMENTS.</p><h1>Découpe tes vidéos.<br><span>Garde l’essentiel.</span></h1><p class="sub">L’atelier intelligent pour tes gameplays : repère les passages intenses, les pics audio et les réactions vocales, puis prépare tes meilleurs clips verticaux.</p></section>
+    <section class="hero"><p class="eyebrow">YOUR VIDEO. YOUR BEST MOMENTS.</p><h1>Découpe tes vidéos.<br><span>Garde l’essentiel.</span></h1><p class="sub">L’atelier intelligent pour toutes tes vidéos : podcasts, sport, gaming, vlogs, humour… Repère les passages les plus intéressants et transforme-les en clips verticaux.</p></section>
     <section class="panel youtube-panel">
-      <div class="panel-head"><div><p class="eyebrow">01 / SOURCE YOUTUBE</p><h2>Coller un lien YouTube</h2></div><span class="tag">LECTURE INTÉGRÉE</span></div>
+      <div class="panel-head"><div><p class="eyebrow">01 / SOURCE VIDÉO YOUTUBE</p><h2>Coller un lien YouTube</h2></div><span class="tag">LECTURE INTÉGRÉE</span></div>
       <div class="youtube-input-row">
         <input id="youtubeUrl" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." aria-label="Lien YouTube">
         <button id="loadYoutube" class="btn primary">Charger</button>
@@ -36,40 +36,41 @@
       <p id="ytStatus" class="status" aria-live="polite">La vidéo YouTube sert à repérer les timestamps. Pour exporter un clip, importe ensuite le fichier vidéo original dans la section ci-dessous.</p>
     </section>
     <section class="panel">
-      <div class="panel-head"><div><p class="eyebrow">02 / IMPORT LOCAL</p><h2>Fichier vidéo original</h2></div><span class="tag">AUCUN ENVOI SERVEUR</span></div>
+      <div class="panel-head"><div><p class="eyebrow">02 / IMPORT DE TA VIDÉO</p><h2>Fichier vidéo original</h2></div><span class="tag">AUCUN ENVOI SERVEUR</span></div>
       <label class="drop" for="file"><span class="upload">↑</span><strong>Choisir une vidéo</strong><small>MP4, MOV ou WebM · traitement sur cet appareil</small><input id="file" type="file" accept="video/*"></label>
       <div id="videoWrap" class="video-wrap hidden"><video id="video" controls playsinline></video><div class="fileline" id="fileName"></div></div>
     </section>
-    <section class="panel gaming-panel">
-      <div class="panel-head"><div><p class="eyebrow">03 / GAMING INTELLIGENCE</p><h2>Mode Gaming</h2></div><span class="tag gaming-tag">GTA READY</span></div>
-      <p class="hint">Optimise le classement pour les gameplays, les actions et les réactions de streamer.</p>
-      <div class="gaming-grid">
-        <label>Type de contenu
-          <select id="gamingProfile">
-            <option value="balanced">Gameplay GTA / action</option>
-            <option value="reaction">Réactions & moments drôles</option>
-            <option value="combat">Combat, poursuites & explosions</option>
-            <option value="story">Cinématiques & narration</option>
+    <section class="panel analysis-panel">
+      <div class="panel-head"><div><p class="eyebrow">03 / IA HIGHLIGHTS</p><h2>Détecter les meilleurs moments</h2></div><span class="tag analysis-tag">TOUS FORMATS</span></div>
+      <p class="hint">SHORTCUT AI analyse les images et l’intensité sonore. Choisis un profil pour adapter le classement au type de vidéo.</p>
+      <div class="analysis-grid">
+        <label>Type de vidéo
+          <select id="contentProfile">
+            <option value="balanced">✨ Automatique / tous contenus</option>
+            <option value="speech">🎙️ Podcast, interview & discussion</option>
+            <option value="action">⚡ Sport, gaming & action</option>
+            <option value="story">🎬 Vlog, tutoriel & narration</option>
+            <option value="reaction">😂 Humour & réactions</option>
           </select>
         </label>
-        <label>Durée des clips
+        <label>Durée souhaitée des clips
           <select id="clipLength" disabled>
             <option value="15">15 secondes</option><option value="30" selected>30 secondes</option><option value="45">45 secondes</option><option value="60">60 secondes</option>
           </select>
         </label>
       </div>
-      <div class="actions"><button id="auto" class="btn primary gaming-action" disabled>✦ Détecter les meilleurs moments</button></div>
+      <div class="actions"><button id="auto" class="btn primary analysis-action" disabled>✦ Analyser et trouver les meilleurs moments</button></div>
       <div class="ai-transcribe">
-        <div><strong>Comprendre les réactions vocales</strong><small>Transcription Whisper locale · aucun envoi de vidéo</small></div>
+        <div><strong>Comprendre les paroles de la vidéo</strong><small>Transcription Whisper locale · podcasts, interviews, commentaires, réactions…</small></div>
         <button id="transcribe" class="btn secondary" disabled>Transcrire avec l’IA</button>
       </div>
-      <p class="ai-disclaimer">La transcription télécharge un modèle IA d’environ 75 Mo lors de la première utilisation. Le traitement se fait dans ton navigateur. Les performances dépendent du téléphone ou de l’ordinateur.</p>
+      <p class="ai-disclaimer">La transcription télécharge un modèle IA d’environ 75 Mo lors de la première utilisation. Le traitement se fait dans ton navigateur. L’analyse visuelle et sonore classe des passages prometteurs, mais ne comprend pas encore toutes les scènes ni ne garantit la viralité.</p>
       <div id="transcriptResults" class="transcript-results hidden" aria-live="polite"></div>
       <div id="candidates" class="candidates hidden" aria-live="polite"></div>
-      <p id="hint" class="hint">Importe un gameplay pour commencer.</p>
+      <p id="hint" class="hint">Importe une vidéo pour lancer l’analyse.</p>
     </section>
     <section class="panel">
-      <div class="panel-head"><div><p class="eyebrow">04 / MONTAGE</p><h2>Créer un clip</h2></div><span class="tag">FORMAT 9:16</span></div>
+      <div class="panel-head"><div><p class="eyebrow">04 / CRÉATION DES CLIPS</p><h2>Créer un clip</h2></div><span class="tag">FORMAT 9:16</span></div>
       <div class="fields"><label>Début (secondes)<input id="start" type="number" min="0" step="0.1" value="0"></label><label>Fin (secondes)<input id="end" type="number" min="0" step="0.1" value="30"></label></div>
       <div class="actions"><button id="setStart" class="btn secondary" disabled>Début = position actuelle</button><button id="setEnd" class="btn secondary" disabled>Fin = position actuelle</button></div>
       <div class="actions"><button id="preview" class="btn secondary" disabled>Prévisualiser le clip</button></div>
@@ -77,7 +78,7 @@
       <div id="status" class="status" aria-live="polite"></div><a id="download" class="download hidden" download="shortcut-ai-clip.webm">Télécharger mon clip</a>
     </section>
     <section class="note"><strong>À savoir sur YouTube</strong><p>SHORTCUT AI lit les vidéos YouTube via le lecteur officiel intégré. Il ne télécharge pas et n'extrait pas les vidéos depuis YouTube. Pour créer et exporter un clip, utilise une copie du fichier original que tu possèdes ou que tu es autorisé à utiliser. Certains créateurs désactivent la lecture intégrée.</p></section>
-    <section class="note"><strong>Comment fonctionne l’analyse V5.0 ?</strong><p>Le classement combine les mouvements, les changements d’images et les pics d’intensité sonore. La transcription vocale optionnelle utilise Whisper dans le navigateur et aide à retrouver les réactions. Ces signaux ne garantissent pas la détection exacte d’une action ni la viralité du clip.</p></section>
-    <footer>SHORTCUT AI <span>·</span> <small id="appVersion">VERSION 5.0</small> <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
-  </main><script src="app.js?v=5.0"></script>
+    <section class="note"><strong>Comment fonctionne l’analyse V6.0 ?</strong><p>L’analyse combine l’activité visuelle, les changements d’image et l’intensité sonore. La transcription Whisper optionnelle repère les paroles et leurs horodatages. Ces signaux aident à proposer des extraits, mais ne comprennent pas encore automatiquement le sens de toutes les scènes.</p></section>
+    <footer>SHORTCUT AI <span>·</span> <small id="appVersion">VERSION 6.0</small> <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
+  </main><script src="app.js?v=6.0"></script>
 </body></html>

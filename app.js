@@ -1,5 +1,5 @@
 // Mise à jour GitHub Pages : vérifie version.json puis recharge les fichiers publiés.
-const APP_VERSION='5.0';
+const APP_VERSION='6.0';
 const updateButton=document.getElementById('updateApp');
 const versionLabel=document.getElementById('appVersion');
 if(versionLabel) versionLabel.textContent='VERSION '+APP_VERSION;
@@ -81,7 +81,7 @@ async function analyzeHighlights(){
   const d=duration();
   if(!d){setStatus('La durée de la vidéo est indisponible.');return}
   const button=$('auto');button.disabled=true;$('candidates').classList.add('hidden');$('candidates').innerHTML='';
-  setStatus('V5.0 : analyse du gameplay et des pics audio…');
+  setStatus('V6.0 : analyse des images et de l’intensité sonore…');
   const audioEnergy=await getAudioEnergy();
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=72;canvas.height=40;
   const step=Math.max(.65,Math.min(1.25,d/180)),times=[];for(let t=0;t<d;t+=step)times.push(t);
@@ -107,7 +107,7 @@ async function analyzeHighlights(){
       const exposure=Math.max(0,1-Math.abs(brightness-.48)/.52);
       samples.push({time:times[i],motion:motionScore,cut:cutScore,detail:Math.min(1,edgeScore*3.4+contrast*.25),exposure});
       previous=lums;
-      if(i%5===0||i===times.length-1)setStatus(`V5.0 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
+      if(i%5===0||i===times.length-1)setStatus(`V6.0 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
     }
     ['motion','cut','detail'].forEach(k=>normalizeFeature(samples,k));
     const requested=Number($('clipLength')?.value)||30;
@@ -124,10 +124,11 @@ async function analyzeHighlights(){
       const dynamic=Math.min(1,motion*.36+cuts*.34+detail*.30);
       const peakMoment=Math.max(peak('cutN'),peak('motionN'));
       const audioScore=getAudioWindowScore(audioEnergy,start,end);
-      const profile=$('gamingProfile')?.value||'balanced';
+      const profile=$('contentProfile')?.value||'balanced';
       let visualWeight=.68,audioWeight=.32;
       if(profile==='reaction'){visualWeight=.48;audioWeight=.52}
-      if(profile==='combat'){visualWeight=.62;audioWeight=.38}
+      if(profile==='speech'){visualWeight=.38;audioWeight=.62}
+      if(profile==='action'){visualWeight=.68;audioWeight=.32}
       if(profile==='story'){visualWeight=.82;audioWeight=.18}
       const visualScore=(dynamic*.78+peakMoment*.14+exposure*.08);
       const combined=audioEnergy.length?visualScore*visualWeight+audioScore*audioWeight:visualScore;
@@ -141,7 +142,7 @@ async function analyzeHighlights(){
     }
     if(!chosen.length){setStatus('Vidéo trop courte ou analyse impossible. Choisis les temps manuellement.');return}
     const box=$('candidates');
-    const intro=document.createElement('p');intro.className='hint';intro.textContent=audioEnergy.length?'Classement V5.0 : activité visuelle + intensité audio. Les pics sonores peuvent signaler une réaction ou un événement, sans en comprendre automatiquement le sens.':'Classement V5.0 : activité visuelle. Analyse audio indisponible sur ce navigateur.';box.append(intro);
+    const intro=document.createElement('p');intro.className='hint';intro.textContent=audioEnergy.length?'Classement V6.0 : activité visuelle + intensité audio. Les pics sonores peuvent signaler un passage marquant, sans en comprendre automatiquement le sens.':'Classement V6.0 : activité visuelle. Analyse audio indisponible sur ce navigateur.';box.append(intro);
     chosen.forEach((item,index)=>{
       const el=document.createElement('div');el.className='candidate';
       const info=document.createElement('div');info.className='candidate-info';
@@ -154,11 +155,11 @@ async function analyzeHighlights(){
       el.append(info,apply);box.append(el);
     });
     box.classList.remove('hidden');const first=chosen[0];$('start').value=first.start.toFixed(1);$('end').value=first.end.toFixed(1);
-    setStatus(`${chosen.length} moments gaming classés. Vérifie le passage avant l’export.`);
+    setStatus(`${chosen.length} moments classés. Vérifie le passage avant l’export.`);
   }catch(error){setStatus('L’analyse a rencontré un problème sur ce navigateur. Tu peux toujours découper la vidéo manuellement.');}
   finally{try{await seek(oldTime)}catch{}button.disabled=false}
 }
-async function transcribeGameplay(){
+async function transcribeVideo(){
   const file=fileInput.files?.[0];if(!file){setStatus('Importe une vidéo avant de lancer la transcription.');return}
   const btn=$('transcribe');btn.disabled=true;btn.textContent='Chargement du modèle…';
   const results=$('transcriptResults');results.classList.remove('hidden');results.innerHTML='<p class="hint">Préparation du modèle Whisper. Au premier lancement, le téléchargement peut prendre quelques minutes.</p>';
@@ -187,11 +188,11 @@ async function transcribeGameplay(){
     if(!useful.length){const p=document.createElement('p');p.textContent='Aucune parole détectée. Essaie avec une vidéo où les voix sont audibles.';results.append(p)}
     useful.forEach(seg=>{const row=document.createElement('div');row.className='transcript-row';const txt=document.createElement('span');txt.textContent=`${formatTime(seg.start)} · ${seg.text}`;const use=document.createElement('button');use.className='btn secondary';use.textContent='Créer un clip';use.onclick=()=>{const len=Number($('clipLength').value)||30;const start=Math.max(0,seg.start-len*.35),end=Math.min(duration(),start+len);$('start').value=start.toFixed(1);$('end').value=end.toFixed(1);video.currentTime=start;setStatus('Moment vocal sélectionné. Prévisualise puis exporte ton clip.');};row.append(txt,use);results.append(row)});
     setStatus('Transcription locale terminée. Sélectionne un passage vocal pour en faire un clip.');
-  }catch(err){results.innerHTML='';const p=document.createElement('p');p.textContent=err.message||'La transcription IA n’a pas pu démarrer sur ce navigateur. Essaie sur un ordinateur ou un navigateur récent.';results.append(p);setStatus('Transcription indisponible. L’analyse gaming visuelle et audio reste utilisable.');}
+  }catch(err){results.innerHTML='';const p=document.createElement('p');p.textContent=err.message||'La transcription IA n’a pas pu démarrer sur ce navigateur. Essaie sur un ordinateur ou un navigateur récent.';results.append(p);setStatus('Transcription indisponible. L’analyse visuelle et audio reste utilisable.');}
   finally{btn.disabled=false;btn.textContent='Transcrire avec l’IA'}
 }
 function formatTime(seconds){const s=Math.max(0,Math.floor(seconds||0));return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
-$('transcribe').onclick=transcribeGameplay;
+$('transcribe').onclick=transcribeVideo;
 $('auto').onclick=analyzeHighlights;
 $('export').onclick=async()=>{const s=Number($('start').value),e=Number($('end').value);if(!valid(s,e))return;const canvas=document.createElement('canvas');canvas.width=720;canvas.height=1280;const ctx=canvas.getContext('2d');const stream=canvas.captureStream(30);let sourceStream=null;try{sourceStream=video.captureStream?video.captureStream():video.mozCaptureStream?.()}catch{}if(sourceStream){for(const track of sourceStream.getAudioTracks())stream.addTrack(track)}const mime=['video/mp4;codecs="avc1.42E01E"','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(x=>MediaRecorder.isTypeSupported(x));if(!mime){setStatus('Ton navigateur ne prend pas en charge l’export vidéo. Essaie Safari ou Chrome à jour.');return}chunks=[];try{recorder=new MediaRecorder(stream,{mimeType:mime})}catch{setStatus('Export non disponible sur ce navigateur.');return}recorder.ondataavailable=ev=>{if(ev.data.size)chunks.push(ev.data)};recorder.onstop=()=>{const blob=new Blob(chunks,{type:mime});const url=URL.createObjectURL(blob);$('download').href=url;$('download').download='shortcut-ai-clip.'+(mime.includes('mp4')?'mp4':'webm');$('download').textContent='↓ Télécharger mon clip';$('download').classList.remove('hidden');setStatus('Export terminé ! Ton clip est prêt.');stream.getTracks().forEach(t=>t.stop())};video.pause();video.currentTime=s;await new Promise(resolve=>video.onseeked=resolve);const draw=()=>{const vw=video.videoWidth,vh=video.videoHeight;if(!vw||!vh)return;const target=9/16,ratio=vw/vh;let sw,sh,sx,sy;if(ratio>target){sh=vh;sw=vh*target;sx=(vw-sw)/2;sy=0}else{sw=vw;sh=vw/target;sx=0;sy=(vh-sh)/2}ctx.fillStyle='#000';ctx.fillRect(0,0,720,1280);ctx.drawImage(video,sx,sy,sw,sh,0,0,720,1280)};recorder.start(500);setStatus('Export en cours… garde cette page ouverte.');let raf;const frame=()=>{draw();if(video.currentTime>=e||video.ended){video.pause();cancelAnimationFrame(raf);if(recorder.state!=='inactive')recorder.stop();return}raf=requestAnimationFrame(frame)};video.play().then(frame).catch(()=>{recorder.stop();setStatus('Impossible de démarrer la vidéo pour l’export.')})};
 

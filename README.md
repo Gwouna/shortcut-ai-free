@@ -1,17 +1,17 @@
-# SHORTCUT AI — version 5.0
+# SHORTCUT AI — version 6.0
 
-La V5.0 ajoute un mode Gaming pour classer les passages de gameplay. Le classement combine des signaux visuels (mouvement, changements d’image, détails) et l’intensité sonore calculée localement. Les profils modifient la pondération pour gameplay/action, réactions, combat/poursuites ou narration.
+SHORTCUT AI est un outil généraliste de création de clips courts à partir de vidéos importées : podcasts, interviews, sport, gaming, vlogs, humour, tutoriels et autres contenus. GTA n’est qu’un exemple de vidéo possible, pas une spécialisation de l’application.
 
-Une transcription vocale optionnelle utilise Whisper Tiny via Transformers.js dans le navigateur. Le modèle est téléchargé à la première utilisation (environ 75 Mo selon les fichiers servis) puis mis en cache par le navigateur. Le fichier vidéo et l’audio ne sont pas envoyés à un serveur par l’application. La transcription est limitée à 15 minutes par fichier pour limiter la mémoire consommée.
+## Fonctionnalités V6.0
+- Analyse locale des images : activité/mouvement, changements d’image, détails et exposition.
+- Analyse locale de l’intensité sonore pour pondérer les passages proposés.
+- Profils de classement généralistes : automatique, discussion/podcast, action/sport/gaming, narration/vlog/tutoriel, humour/réactions.
+- Transcription optionnelle des paroles avec Whisper Tiny dans le navigateur, avec segments horodatés sélectionnables. Le modèle est téléchargé au premier lancement (environ 75 Mo selon les fichiers servis).
+- Jusqu’à cinq fenêtres de clips proposées, puis sélection, prévisualisation et export vertical 9:16.
+- Lecteur YouTube intégré pour repérer des timestamps ; il ne télécharge pas les vidéos.
 
 ## Installation GitHub Pages
-Remplacer à la racine du dépôt : `index.html`, `styles.css`, `app.js`, `README.md` et `version.json`. Puis publier/committer les modifications. Le bouton « Mettre à jour » vérifie `version.json` et recharge si une version plus récente est publiée.
+Remplacer à la racine du dépôt : `index.html`, `styles.css`, `app.js`, `README.md` et `version.json`, puis committer les changements. Le bouton « Mettre à jour » vérifie `version.json` et recharge si une version plus récente est publiée.
 
-## Ce que fait réellement la V5.0
-- Analyse locale des images et de l’intensité audio pour proposer jusqu’à cinq fenêtres de clips.
-- Profils de classement Gaming : gameplay GTA/action, réactions, combat/poursuites/explosions, cinématiques/narration.
-- Transcription optionnelle de la parole avec Whisper Tiny dans le navigateur, avec segments horodatés sélectionnables.
-- Découpage et export vertical 9:16 conservés.
-
-## Limites importantes
-L’intensité sonore n’identifie pas à elle seule une explosion, un tir ou un cri. Whisper transcrit la parole mais ne comprend pas automatiquement le contexte du jeu et ne détecte pas toutes les actions. Les résultats dépendent du navigateur, du processeur, de la mémoire et de la qualité audio. Le modèle IA nécessite une connexion Internet au premier téléchargement. Le recadrage vidéo reste centré, sans suivi automatique du personnage. Le lecteur YouTube intégré ne télécharge pas les vidéos.
+## Limites honnêtes
+L’analyse visuelle et sonore détecte des signaux pouvant correspondre à des passages intéressants, mais ne comprend pas encore le sens des scènes, ne reconnaît pas de façon fiable les actions ou émotions et ne prédit pas la viralité. Whisper transcrit la parole, mais ne juge pas automatiquement si une phrase est drôle ou importante. Les performances dépendent du navigateur, du processeur et de la mémoire. Le recadrage vertical reste centré, sans suivi automatique des visages/personnages. L’export dépend des capacités du navigateur. Le fichier vidéo est traité localement par l’application ; le téléchargement initial du modèle Whisper nécessite Internet.
