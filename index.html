@@ -6,9 +6,9 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="top"><a class="brand" href="#"><span class="mark">S</span> SHORTCUT <b>AI</b></a><div class="top-meta"><span class="version-badge">VERSION 2.1</span><span class="local">TRAITEMENT LOCAL · GRATUIT</span></div></header>
+  <header class="top"><a class="brand" href="#"><span class="mark">S</span> SHORTCUT <b>AI</b></a><div class="top-meta"><span class="version-badge">VERSION 3.0</span><span class="local">TRAITEMENT LOCAL · GRATUIT</span></div></header>
   <main>
-    <section class="hero"><p class="eyebrow">YOUR VIDEO. YOUR BEST MOMENTS.</p><h1>Découpe tes vidéos.<br><span>Garde l’essentiel.</span></h1><p class="sub">Importe une vidéo, sélectionne tes meilleurs passages et prépare des clips verticaux directement dans ton navigateur.</p></section>
+    <section class="hero"><p class="eyebrow">YOUR VIDEO. YOUR BEST MOMENTS.</p><h1>Découpe tes vidéos.<br><span>Garde l’essentiel.</span></h1><p class="sub">Importe une vidéo : SHORTCUT AI repère les séquences visuellement les plus dynamiques, te propose les meilleurs extraits et prépare tes clips verticaux.</p></section>
     <section class="panel youtube-panel">
       <div class="panel-head"><div><p class="eyebrow">01 / SOURCE YOUTUBE</p><h2>Coller un lien YouTube</h2></div><span class="tag">LECTURE INTÉGRÉE</span></div>
       <div class="youtube-input-row">
@@ -41,6 +41,12 @@
       <div class="panel-head"><div><p class="eyebrow">03 / DÉCOUPAGE</p><h2>Créer un clip</h2></div><span class="tag">FORMAT 9:16</span></div>
       <div class="fields"><label>Début (secondes)<input id="start" type="number" min="0" step="0.1" value="0"></label><label>Fin (secondes)<input id="end" type="number" min="0" step="0.1" value="30"></label></div>
       <div class="actions"><button id="setStart" class="btn secondary" disabled>Début = position actuelle</button><button id="setEnd" class="btn secondary" disabled>Fin = position actuelle</button></div>
+      <div class="analysis-settings">
+        <label for="clipLength">Durée cible des Shorts</label>
+        <select id="clipLength" disabled>
+          <option value="15">15 secondes</option><option value="30" selected>30 secondes</option><option value="45">45 secondes</option><option value="60">60 secondes</option>
+        </select>
+      </div>
       <div class="actions"><button id="auto" class="btn secondary" disabled>✦ Analyser et trouver les Shorts</button><button id="preview" class="btn secondary" disabled>Prévisualiser le clip</button></div>
       <p id="hint" class="hint">Importe une vidéo pour commencer.</p>
       <div id="candidates" class="candidates hidden" aria-live="polite"></div>
@@ -48,7 +54,7 @@
       <div id="status" class="status" aria-live="polite"></div><a id="download" class="download hidden" download="shortcut-ai-clip.webm">Télécharger mon clip</a>
     </section>
     <section class="note"><strong>À savoir sur YouTube</strong><p>SHORTCUT AI lit les vidéos YouTube via le lecteur officiel intégré. Il ne télécharge pas et n'extrait pas les vidéos depuis YouTube. Pour créer et exporter un clip, utilise une copie du fichier original que tu possèdes ou que tu es autorisé à utiliser. Certains créateurs désactivent la lecture intégrée.</p></section>
-    <section class="note"><strong>À savoir</strong><p>SHORTCUT AI version gratuite effectue le découpage sur ton appareil. Le repérage automatique local classe les séquences selon leur activité visuelle. Il ne comprend pas encore le sens des paroles ou des actions comme le ferait une IA sémantique. L’export dépend des formats vidéo pris en charge par ton navigateur et peut être lent sur les grosses vidéos.</p></section>
-    <footer>SHORTCUT AI <span>·</span> VERSION 2.1 <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
+    <section class="note"><strong>Comment fonctionne l’analyse V3.0 ?</strong><p>L’analyse locale combine plusieurs indices visuels : mouvements entre les images, changements de plans, contraste et détails. Elle classe les passages les plus dynamiques sans envoyer la vidéo sur un serveur. Elle ne comprend pas encore les dialogues, les émotions ou le sens des actions : cette compréhension par IA nécessitera une brique de transcription et un modèle d’analyse distincts.</p></section>
+    <footer>SHORTCUT AI <span>·</span> VERSION 3.0 <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
   </main><script src="app.js"></script>
 </body></html>

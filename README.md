@@ -1,26 +1,17 @@
-# SHORTCUT AI — version 2.1
+# SHORTCUT AI — version 3.0
 
-Version affichée dans l’interface : **2.1**. Cette mise à jour ajoute un indicateur de version visible dans l’en-tête et le pied de page.
+La V3.0 améliore le classement local des passages vidéo. L’analyse combine plusieurs indices visuels : différences entre images, changements de plans, détails/contraste et exposition. L’utilisateur peut choisir une durée cible de 15, 30, 45 ou 60 secondes et obtenir jusqu’à cinq propositions.
 
-Application gratuite, sans serveur.
+## Installation GitHub Pages
+Remplacer les quatre fichiers `index.html`, `styles.css`, `app.js` et `README.md` à la racine du dépôt. Conserver le déploiement GitHub Pages actuel.
 
-Cette version est une application web statique. Elle ne nécessite ni Render, ni serveur, ni clé API. Les fichiers vidéo restent dans le navigateur de l'utilisateur.
+## Ce que fait réellement la V3.0
+- Analyse les images localement dans le navigateur ; aucune vidéo n’est envoyée à un serveur.
+- Classe les passages selon des signaux visuels, puis propose jusqu’à cinq fenêtres.
+- Permet de choisir une durée cible et de reprendre un passage dans le découpage vertical existant.
+- Conserve le lecteur YouTube intégré officiel : il sert à repérer des timestamps, pas à télécharger la vidéo.
 
-## Déploiement gratuit avec GitHub Pages
-1. Ajouter `index.html`, `styles.css` et `app.js` à la racine du dépôt GitHub (au même niveau que `server.js`).
-2. Dans le dépôt, ouvrir **Settings → Pages**.
-3. Dans **Build and deployment**, choisir **Deploy from a branch**.
-4. Choisir la branche `main` et le dossier `/(root)`, puis **Save**.
-5. Attendre la publication et ouvrir l'URL GitHub Pages affichée.
+## Limites
+Cette V3.0 n’est pas encore une IA sémantique : elle ne transcrit pas les paroles, ne comprend pas les actions et ne prédit pas la viralité. Pour cela, il faudra ajouter une transcription audio et un modèle d’analyse du contenu, avec un choix technique entre un modèle exécuté sur l’appareil (lourd sur iPhone) ou un service/API avec backend et éventuels coûts.
 
-## Limites honnêtes du prototype
-- Le repérage automatique classe jusqu’à cinq fenêtres vidéo selon leur activité visuelle (différences entre images). Il ne comprend pas encore le sens des paroles, des actions ou de l’histoire : ce n’est pas une IA sémantique.
-- L'export est réalisé par `MediaRecorder` dans le navigateur. Le format (MP4 ou WebM), l'audio et les performances dépendent du navigateur et de l'appareil.
-- L'export recadre au centre en 9:16. Il n'y a pas encore de suivi automatique du visage ni de sous-titrage automatique.
-- Les vidéos ne sont pas téléversées sur un serveur par cette application.
-
-## Import YouTube
-- L'application intègre le lecteur officiel YouTube pour lire une vidéo publique et repérer des temps de début/fin.
-- Elle ne télécharge pas et n'extrait pas les vidéos YouTube.
-- Pour exporter un clip, l'utilisateur doit importer le fichier vidéo original qu'il possède ou est autorisé à utiliser.
-- La lecture intégrée dépend des réglages du créateur et de la disponibilité de la vidéo.
+L’export dépend des codecs et capacités du navigateur. Le recadrage reste centré (pas encore de suivi de visage).

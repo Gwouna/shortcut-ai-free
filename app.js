@@ -2,35 +2,95 @@ const $=id=>document.getElementById(id);const fileInput=$('file'),video=$('video
 function setStatus(s){$('status').textContent=s}
 function duration(){return Number.isFinite(video.duration)?video.duration:0}
 function update(){const d=duration();$('start').max=d;$('end').max=d;if(d){$('end').value=Math.min(Number($('end').value)||30,d);$('hint').textContent=`Durée de la vidéo : ${d.toFixed(1)} secondes.`}}
-fileInput.addEventListener('change',()=>{const f=fileInput.files?.[0];if(!f)return;if(!f.type.startsWith('video/')){setStatus('Choisis un fichier vidéo.');return}if(fileUrl)URL.revokeObjectURL(fileUrl);fileUrl=URL.createObjectURL(f);video.src=fileUrl;$('videoWrap').classList.remove('hidden');$('fileName').textContent=f.name;['setStart','setEnd','auto','preview','export'].forEach(id=>$(id).disabled=false);$('download').classList.add('hidden');setStatus('Vidéo chargée sur ton appareil.');video.onloadedmetadata=()=>{update();$('end').value=Math.min(30,duration())}});
+fileInput.addEventListener('change',()=>{const f=fileInput.files?.[0];if(!f)return;if(!f.type.startsWith('video/')){setStatus('Choisis un fichier vidéo.');return}if(fileUrl)URL.revokeObjectURL(fileUrl);fileUrl=URL.createObjectURL(f);video.src=fileUrl;$('videoWrap').classList.remove('hidden');$('fileName').textContent=f.name;['setStart','setEnd','auto','preview','export','clipLength'].forEach(id=>{if($(id))$(id).disabled=false});$('download').classList.add('hidden');setStatus('Vidéo chargée sur ton appareil.');video.onloadedmetadata=()=>{update();$('end').value=Math.min(30,duration())}});
 $('setStart').onclick=()=>{$('start').value=video.currentTime.toFixed(1)};$('setEnd').onclick=()=>{$('end').value=video.currentTime.toFixed(1)};
 $('preview').onclick=()=>{const s=Number($('start').value),e=Number($('end').value);if(!valid(s,e))return;video.currentTime=s;video.play();const stop=()=>{if(video.currentTime>=e){video.pause();video.removeEventListener('timeupdate',stop)}};video.addEventListener('timeupdate',stop)};
 function valid(s,e){if(s<0||e<=s||e>duration()){setStatus('Vérifie le début et la fin du clip.');return false}if(e-s>90){setStatus('Pour cette version gratuite, limite le clip à 90 secondes.');return false}return true}
+function percentile(values,p){
+  const a=[...values].sort((x,y)=>x-y);if(!a.length)return 0;
+  return a[Math.min(a.length-1,Math.max(0,Math.floor((a.length-1)*p)))];
+}
+function normalizeFeature(samples,key){
+  const values=samples.map(x=>x[key]),lo=percentile(values,.1),hi=percentile(values,.9),range=Math.max(.0001,hi-lo);
+  samples.forEach(x=>x[key+'N']=Math.max(0,Math.min(1,(x[key]-lo)/range)));
+}
+function makeReasons(item){
+  const reasons=[];
+  if(item.motion>.55)reasons.push('mouvements soutenus');
+  if(item.cuts>.45)reasons.push('changements de plans');
+  if(item.detail>.55)reasons.push('images riches en détails');
+  if(!reasons.length)reasons.push('activité visuelle régulière');
+  return reasons.slice(0,2).join(' · ');
+}
 async function analyzeHighlights(){
   const d=duration();
   if(!d){setStatus('La durée de la vidéo est indisponible.');return}
   const button=$('auto');button.disabled=true;$('candidates').classList.add('hidden');$('candidates').innerHTML='';
-  setStatus('Analyse des images en cours…');
-  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=64;canvas.height=36;
-  const step=Math.max(.75,d/150),times=[];for(let t=0;t<d;t+=step)times.push(t);
+  setStatus('V3.0 : préparation de l’analyse visuelle locale…');
+  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=72;canvas.height=40;
+  const step=Math.max(.65,Math.min(1.25,d/180)),times=[];for(let t=0;t<d;t+=step)times.push(t);
+  if(!times.length)times.push(0);
   const samples=[];let previous=null;const oldTime=video.currentTime;video.pause();
-  const seek=t=>new Promise((resolve,reject)=>{let done=false;const finish=()=>{if(done)return;done=true;video.removeEventListener('seeked',finish);resolve()};video.addEventListener('seeked',finish,{once:true});video.currentTime=Math.min(t,Math.max(0,d-.05));setTimeout(()=>{if(!done){done=true;video.removeEventListener('seeked',finish);reject(new Error('seek-timeout'))}},5000)});
+  const seek=t=>new Promise((resolve,reject)=>{let done=false;const finish=()=>{if(done)return;done=true;video.removeEventListener('seeked',finish);resolve()};video.addEventListener('seeked',finish,{once:true});video.currentTime=Math.min(t,Math.max(0,d-.05));setTimeout(()=>{if(!done){done=true;video.removeEventListener('seeked',finish);reject(new Error('seek-timeout'))}},6000)});
   try{
     for(let i=0;i<times.length;i++){
-      await seek(times[i]);ctx.drawImage(video,0,0,64,36);const data=ctx.getImageData(0,0,64,36).data;let score=0;
-      if(previous){let count=0;for(let j=0;j<data.length;j+=12){score+=Math.abs(data[j]-previous[j])+Math.abs(data[j+1]-previous[j+1])+Math.abs(data[j+2]-previous[j+2]);count+=3}score/=Math.max(1,count*3*255)}
-      previous=data;samples.push({time:times[i],score});
-      if(i%8===0)setStatus(`Analyse locale… ${Math.round((i+1)/times.length*100)} %`);
+      await seek(times[i]);ctx.drawImage(video,0,0,72,40);const data=ctx.getImageData(0,0,72,40).data;
+      let lum=0,lum2=0,edges=0,motion=0,px=0,edgeCount=0;
+      const lums=new Float32Array(72*40);
+      for(let p=0,k=0;p<data.length;p+=4,k++){
+        const y=.2126*data[p]+.7152*data[p+1]+.0722*data[p+2];lums[k]=y;lum+=y;lum2+=y*y;
+        if(previous){motion+=Math.abs(y-previous[k]);px++}
+        if(k%72!==0){edges+=Math.abs(y-lums[k-1]);edgeCount++}
+        if(k>=72){edges+=Math.abs(y-lums[k-72]);edgeCount++}
+      }
+      const count=lums.length,mean=lum/count,variance=Math.max(0,lum2/count-mean*mean);
+      const motionScore=px?motion/(px*255):0;
+      const edgeScore=edgeCount?edges/(edgeCount*255):0;
+      const brightness=mean/255,contrast=Math.sqrt(variance)/128;
+      const cutScore=previous?Math.min(1,motionScore*3.2):0;
+      const exposure=Math.max(0,1-Math.abs(brightness-.48)/.52);
+      samples.push({time:times[i],motion:motionScore,cut:cutScore,detail:Math.min(1,edgeScore*3.4+contrast*.25),exposure});
+      previous=lums;
+      if(i%5===0||i===times.length-1)setStatus(`V3.0 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
     }
-    const clipLength=Math.min(30,Math.max(12,d));const stride=Math.max(2,clipLength/5);const windows=[];
-    for(let start=0;start+clipLength<=d+.01;start+=stride){const values=samples.filter(x=>x.time>=start&&x.time<start+clipLength).map(x=>x.score);if(!values.length)continue;const avg=values.reduce((a,b)=>a+b,0)/values.length;const peak=Math.max(...values);windows.push({start,end:Math.min(d,start+clipLength),score:avg*.7+peak*.3})}
+    ['motion','cut','detail'].forEach(k=>normalizeFeature(samples,k));
+    const requested=Number($('clipLength')?.value)||30;
+    const clipLength=Math.min(requested,d),stride=Math.max(1,clipLength/5),windows=[];
+    const starts=[];for(let s=0;s+clipLength<=d+.01;s+=stride)starts.push(s);
+    if(d>clipLength&&(!starts.length||d-clipLength-starts[starts.length-1]>.5))starts.push(d-clipLength);
+    if(!starts.length)starts.push(0);
+    for(const start of starts){
+      const end=Math.min(d,start+clipLength),v=samples.filter(x=>x.time>=start&&x.time<end);
+      if(!v.length)continue;
+      const avg=k=>v.reduce((sum,x)=>sum+x[k],0)/v.length;
+      const peak=k=>Math.max(...v.map(x=>x[k]));
+      const motion=avg('motionN'),cuts=avg('cutN'),detail=avg('detailN'),exposure=avg('exposure');
+      const dynamic=Math.min(1,motion*.36+cuts*.34+detail*.30);
+      const peakMoment=Math.max(peak('cutN'),peak('motionN'));
+      const score=Math.max(0,Math.min(100,(dynamic*.78+peakMoment*.14+exposure*.08)*100));
+      windows.push({start,end,score,motion,cuts,detail,exposure});
+    }
     windows.sort((a,b)=>b.score-a.score);const chosen=[];
-    for(const item of windows){if(chosen.every(x=>Math.abs(x.start-item.start)>=clipLength*.7)){chosen.push(item);if(chosen.length===5)break}}
-    chosen.sort((a,b)=>a.start-b.start);
+    for(const item of windows){
+      if(chosen.every(x=>Math.abs(x.start-item.start)>=clipLength*.72))chosen.push(item);
+      if(chosen.length===5)break;
+    }
     if(!chosen.length){setStatus('Vidéo trop courte ou analyse impossible. Choisis les temps manuellement.');return}
-    const box=$('candidates');box.innerHTML='<p class="hint">Les séquences sont classées selon leur activité visuelle. Choisis celles qui t’intéressent : elles ne sont pas encore évaluées par compréhension du contenu.</p>';
-    chosen.forEach((item,index)=>{const el=document.createElement('div');el.className='candidate';const info=document.createElement('div');const title=document.createElement('strong');title.textContent=`Séquence ${index+1}${index===0?' · activité la plus élevée':''}`;const detail=document.createElement('small');detail.textContent=`${item.start.toFixed(1)} s → ${item.end.toFixed(1)} s · ${Math.round(item.score*100)} points d’activité`;info.append(title,detail);const apply=document.createElement('button');apply.className='btn secondary';apply.textContent='Utiliser ce passage';apply.onclick=()=>{$('start').value=item.start.toFixed(1);$('end').value=item.end.toFixed(1);video.currentTime=item.start;setStatus(`Séquence ${index+1} sélectionnée. Tu peux prévisualiser puis exporter le clip.`);$('candidates').querySelectorAll('.candidate').forEach(x=>x.classList.remove('selected'));el.classList.add('selected')};el.append(info,apply);box.append(el)});
-    box.classList.remove('hidden');const first=chosen[0];$('start').value=first.start.toFixed(1);$('end').value=first.end.toFixed(1);setStatus(`${chosen.length} séquences repérées. La première est pré-sélectionnée : choisis celle que tu préfères.`);
+    const box=$('candidates');
+    const intro=document.createElement('p');intro.className='hint';intro.textContent='Classement V3.0 : mouvements, changements de plans, détails et qualité visuelle. Ce score mesure le dynamisme des images, pas la viralité ni le sens des dialogues.';box.append(intro);
+    chosen.forEach((item,index)=>{
+      const el=document.createElement('div');el.className='candidate';
+      const info=document.createElement('div');info.className='candidate-info';
+      const title=document.createElement('strong');title.textContent=`${index+1}. ${index===0?'Meilleur score visuel':'Passage proposé'}`;
+      const detail=document.createElement('small');detail.textContent=`${item.start.toFixed(1)} s → ${item.end.toFixed(1)} s · ${Math.round(item.score)}/100 · ${makeReasons(item)}`;
+      const meter=document.createElement('div');meter.className='score-track';const fill=document.createElement('span');fill.style.width=`${item.score}%`;meter.append(fill);
+      info.append(title,detail,meter);
+      const apply=document.createElement('button');apply.className='btn secondary';apply.textContent='Choisir';
+      apply.onclick=()=>{$('start').value=item.start.toFixed(1);$('end').value=item.end.toFixed(1);video.currentTime=item.start;setStatus(`Passage ${index+1} sélectionné. Prévisualise-le puis exporte ton Short.`);$('candidates').querySelectorAll('.candidate').forEach(x=>x.classList.remove('selected'));el.classList.add('selected')};
+      el.append(info,apply);box.append(el);
+    });
+    box.classList.remove('hidden');const first=chosen[0];$('start').value=first.start.toFixed(1);$('end').value=first.end.toFixed(1);
+    setStatus(`${chosen.length} passages classés. Le premier est pré-sélectionné : vérifie le résultat avant l’export.`);
   }catch(error){setStatus('L’analyse a rencontré un problème sur ce navigateur. Tu peux toujours découper la vidéo manuellement.');}
   finally{try{await seek(oldTime)}catch{}button.disabled=false}
 }
