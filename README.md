@@ -1,19 +1,17 @@
-# SHORTCUT AI — version 4.0
+# SHORTCUT AI — version 5.0
 
-La V4.0 améliore le classement local des passages vidéo. L’analyse combine plusieurs indices visuels : différences entre images, changements de plans, détails/contraste et exposition. L’utilisateur peut choisir une durée cible de 15, 30, 45 ou 60 secondes et obtenir jusqu’à cinq propositions.
+La V5.0 ajoute un mode Gaming pour classer les passages de gameplay. Le classement combine des signaux visuels (mouvement, changements d’image, détails) et l’intensité sonore calculée localement. Les profils modifient la pondération pour gameplay/action, réactions, combat/poursuites ou narration.
+
+Une transcription vocale optionnelle utilise Whisper Tiny via Transformers.js dans le navigateur. Le modèle est téléchargé à la première utilisation (environ 75 Mo selon les fichiers servis) puis mis en cache par le navigateur. Le fichier vidéo et l’audio ne sont pas envoyés à un serveur par l’application. La transcription est limitée à 15 minutes par fichier pour limiter la mémoire consommée.
 
 ## Installation GitHub Pages
-Remplacer les quatre fichiers `index.html`, `styles.css`, `app.js` et `README.md` à la racine du dépôt, et ajouter le nouveau fichier `version.json` à la racine. Conserver le déploiement GitHub Pages actuel.
+Remplacer à la racine du dépôt : `index.html`, `styles.css`, `app.js`, `README.md` et `version.json`. Puis publier/committer les modifications. Le bouton « Mettre à jour » vérifie `version.json` et recharge si une version plus récente est publiée.
 
-Le bouton « Mettre à jour » vérifie `version.json` sans cache. Si une version plus récente est publiée, il recharge l’application avec une URL actualisée pour forcer le navigateur à récupérer les nouveaux fichiers. GitHub Pages ne peut pas remplacer silencieusement les fichiers déjà affichés : après cette première installation, le bouton permet de vérifier et d’appliquer les versions futures. La toute première mise à jour doit être chargée une fois depuis Safari si l’icône de l’écran d’accueil conserve une ancienne page.
+## Ce que fait réellement la V5.0
+- Analyse locale des images et de l’intensité audio pour proposer jusqu’à cinq fenêtres de clips.
+- Profils de classement Gaming : gameplay GTA/action, réactions, combat/poursuites/explosions, cinématiques/narration.
+- Transcription optionnelle de la parole avec Whisper Tiny dans le navigateur, avec segments horodatés sélectionnables.
+- Découpage et export vertical 9:16 conservés.
 
-## Ce que fait réellement la V4.0
-- Analyse les images localement dans le navigateur ; aucune vidéo n’est envoyée à un serveur.
-- Classe les passages selon des signaux visuels, puis propose jusqu’à cinq fenêtres.
-- Permet de choisir une durée cible et de reprendre un passage dans le découpage vertical existant.
-- Conserve le lecteur YouTube intégré officiel : il sert à repérer des timestamps, pas à télécharger la vidéo.
-
-## Limites
-Cette V4.0 n’est pas encore une IA sémantique : elle ne transcrit pas les paroles, ne comprend pas les actions et ne prédit pas la viralité. Pour cela, il faudra ajouter une transcription audio et un modèle d’analyse du contenu, avec un choix technique entre un modèle exécuté sur l’appareil (lourd sur iPhone) ou un service/API avec backend et éventuels coûts.
-
-L’export dépend des codecs et capacités du navigateur. Le recadrage reste centré (pas encore de suivi de visage).
+## Limites importantes
+L’intensité sonore n’identifie pas à elle seule une explosion, un tir ou un cri. Whisper transcrit la parole mais ne comprend pas automatiquement le contexte du jeu et ne détecte pas toutes les actions. Les résultats dépendent du navigateur, du processeur, de la mémoire et de la qualité audio. Le modèle IA nécessite une connexion Internet au premier téléchargement. Le recadrage vidéo reste centré, sans suivi automatique du personnage. Le lecteur YouTube intégré ne télécharge pas les vidéos.

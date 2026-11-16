@@ -1,5 +1,5 @@
 // Mise à jour GitHub Pages : vérifie version.json puis recharge les fichiers publiés.
-const APP_VERSION='4.0';
+const APP_VERSION='5.0';
 const updateButton=document.getElementById('updateApp');
 const versionLabel=document.getElementById('appVersion');
 if(versionLabel) versionLabel.textContent='VERSION '+APP_VERSION;
@@ -40,7 +40,7 @@ const $=id=>document.getElementById(id);const fileInput=$('file'),video=$('video
 function setStatus(s){$('status').textContent=s}
 function duration(){return Number.isFinite(video.duration)?video.duration:0}
 function update(){const d=duration();$('start').max=d;$('end').max=d;if(d){$('end').value=Math.min(Number($('end').value)||30,d);$('hint').textContent=`Durée de la vidéo : ${d.toFixed(1)} secondes.`}}
-fileInput.addEventListener('change',()=>{const f=fileInput.files?.[0];if(!f)return;if(!f.type.startsWith('video/')){setStatus('Choisis un fichier vidéo.');return}if(fileUrl)URL.revokeObjectURL(fileUrl);fileUrl=URL.createObjectURL(f);video.src=fileUrl;$('videoWrap').classList.remove('hidden');$('fileName').textContent=f.name;['setStart','setEnd','auto','preview','export','clipLength'].forEach(id=>{if($(id))$(id).disabled=false});$('download').classList.add('hidden');setStatus('Vidéo chargée sur ton appareil.');video.onloadedmetadata=()=>{update();$('end').value=Math.min(30,duration())}});
+fileInput.addEventListener('change',()=>{const f=fileInput.files?.[0];if(!f)return;if(!f.type.startsWith('video/')){setStatus('Choisis un fichier vidéo.');return}if(fileUrl)URL.revokeObjectURL(fileUrl);fileUrl=URL.createObjectURL(f);video.src=fileUrl;$('videoWrap').classList.remove('hidden');$('fileName').textContent=f.name;['setStart','setEnd','auto','transcribe','preview','export','clipLength'].forEach(id=>{if($(id))$(id).disabled=false});$('download').classList.add('hidden');setStatus('Vidéo chargée sur ton appareil.');video.onloadedmetadata=()=>{update();$('end').value=Math.min(30,duration())}});
 $('setStart').onclick=()=>{$('start').value=video.currentTime.toFixed(1)};$('setEnd').onclick=()=>{$('end').value=video.currentTime.toFixed(1)};
 $('preview').onclick=()=>{const s=Number($('start').value),e=Number($('end').value);if(!valid(s,e))return;video.currentTime=s;video.play();const stop=()=>{if(video.currentTime>=e){video.pause();video.removeEventListener('timeupdate',stop)}};video.addEventListener('timeupdate',stop)};
 function valid(s,e){if(s<0||e<=s||e>duration()){setStatus('Vérifie le début et la fin du clip.');return false}if(e-s>90){setStatus('Pour cette version gratuite, limite le clip à 90 secondes.');return false}return true}
@@ -55,16 +55,34 @@ function normalizeFeature(samples,key){
 function makeReasons(item){
   const reasons=[];
   if(item.motion>.55)reasons.push('mouvements soutenus');
+  if(item.audio>.55)reasons.push('intensité audio élevée');
   if(item.cuts>.45)reasons.push('changements de plans');
   if(item.detail>.55)reasons.push('images riches en détails');
   if(!reasons.length)reasons.push('activité visuelle régulière');
   return reasons.slice(0,2).join(' · ');
 }
+async function getAudioEnergy(){
+  const file=fileInput.files?.[0];if(!file)return [];
+  try{
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return [];
+    const ac=new AudioCtx();const buffer=await ac.decodeAudioData(await file.arrayBuffer());
+    const channelCount=buffer.numberOfChannels,sr=buffer.sampleRate,hop=Math.max(1,Math.floor(sr*.5)),out=[];
+    const channels=Array.from({length:channelCount},(_,i)=>buffer.getChannelData(i));
+    for(let start=0;start<buffer.length;start+=hop){let sum=0,count=0;const end=Math.min(buffer.length,start+hop);
+      for(let i=start;i<end;i+=4){let sample=0;for(const ch of channels)sample+=ch[i]/channelCount;sum+=sample*sample;count++;}
+      out.push({time:start/sr,rms:Math.sqrt(sum/Math.max(1,count))});
+    }
+    await ac.close();const vals=out.map(x=>x.rms),lo=percentile(vals,.15),hi=Math.max(lo+.00001,percentile(vals,.95));
+    out.forEach(x=>x.score=Math.max(0,Math.min(1,(x.rms-lo)/(hi-lo))));return out;
+  }catch(e){return []}
+}
+function getAudioWindowScore(audio,start,end){const values=audio.filter(x=>x.time>=start&&x.time<end).map(x=>x.score);if(!values.length)return 0;return Math.min(1,values.reduce((a,b)=>a+b,0)/values.length*.65+Math.max(...values)*.35)}
 async function analyzeHighlights(){
   const d=duration();
   if(!d){setStatus('La durée de la vidéo est indisponible.');return}
   const button=$('auto');button.disabled=true;$('candidates').classList.add('hidden');$('candidates').innerHTML='';
-  setStatus('V4.0 : préparation de l’analyse visuelle locale…');
+  setStatus('V5.0 : analyse du gameplay et des pics audio…');
+  const audioEnergy=await getAudioEnergy();
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=72;canvas.height=40;
   const step=Math.max(.65,Math.min(1.25,d/180)),times=[];for(let t=0;t<d;t+=step)times.push(t);
   if(!times.length)times.push(0);
@@ -89,7 +107,7 @@ async function analyzeHighlights(){
       const exposure=Math.max(0,1-Math.abs(brightness-.48)/.52);
       samples.push({time:times[i],motion:motionScore,cut:cutScore,detail:Math.min(1,edgeScore*3.4+contrast*.25),exposure});
       previous=lums;
-      if(i%5===0||i===times.length-1)setStatus(`V3.1 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
+      if(i%5===0||i===times.length-1)setStatus(`V5.0 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
     }
     ['motion','cut','detail'].forEach(k=>normalizeFeature(samples,k));
     const requested=Number($('clipLength')?.value)||30;
@@ -105,8 +123,16 @@ async function analyzeHighlights(){
       const motion=avg('motionN'),cuts=avg('cutN'),detail=avg('detailN'),exposure=avg('exposure');
       const dynamic=Math.min(1,motion*.36+cuts*.34+detail*.30);
       const peakMoment=Math.max(peak('cutN'),peak('motionN'));
-      const score=Math.max(0,Math.min(100,(dynamic*.78+peakMoment*.14+exposure*.08)*100));
-      windows.push({start,end,score,motion,cuts,detail,exposure});
+      const audioScore=getAudioWindowScore(audioEnergy,start,end);
+      const profile=$('gamingProfile')?.value||'balanced';
+      let visualWeight=.68,audioWeight=.32;
+      if(profile==='reaction'){visualWeight=.48;audioWeight=.52}
+      if(profile==='combat'){visualWeight=.62;audioWeight=.38}
+      if(profile==='story'){visualWeight=.82;audioWeight=.18}
+      const visualScore=(dynamic*.78+peakMoment*.14+exposure*.08);
+      const combined=audioEnergy.length?visualScore*visualWeight+audioScore*audioWeight:visualScore;
+      const score=Math.max(0,Math.min(100,combined*100));
+      windows.push({start,end,score,motion,cuts,detail,exposure,audio:audioScore});
     }
     windows.sort((a,b)=>b.score-a.score);const chosen=[];
     for(const item of windows){
@@ -115,12 +141,12 @@ async function analyzeHighlights(){
     }
     if(!chosen.length){setStatus('Vidéo trop courte ou analyse impossible. Choisis les temps manuellement.');return}
     const box=$('candidates');
-    const intro=document.createElement('p');intro.className='hint';intro.textContent='Classement V3.1 : mouvements, changements de plans, détails et qualité visuelle. Ce score mesure le dynamisme des images, pas la viralité ni le sens des dialogues.';box.append(intro);
+    const intro=document.createElement('p');intro.className='hint';intro.textContent=audioEnergy.length?'Classement V5.0 : activité visuelle + intensité audio. Les pics sonores peuvent signaler une réaction ou un événement, sans en comprendre automatiquement le sens.':'Classement V5.0 : activité visuelle. Analyse audio indisponible sur ce navigateur.';box.append(intro);
     chosen.forEach((item,index)=>{
       const el=document.createElement('div');el.className='candidate';
       const info=document.createElement('div');info.className='candidate-info';
       const title=document.createElement('strong');title.textContent=`${index+1}. ${index===0?'Meilleur score visuel':'Passage proposé'}`;
-      const detail=document.createElement('small');detail.textContent=`${item.start.toFixed(1)} s → ${item.end.toFixed(1)} s · ${Math.round(item.score)}/100 · ${makeReasons(item)}`;
+      const detail=document.createElement('small');detail.textContent=`${item.start.toFixed(1)} s → ${item.end.toFixed(1)} s · ${Math.round(item.score)}/100 · ${makeReasons(item)}${item.audio>.5?' · pic audio':''}`;
       const meter=document.createElement('div');meter.className='score-track';const fill=document.createElement('span');fill.style.width=`${item.score}%`;meter.append(fill);
       info.append(title,detail,meter);
       const apply=document.createElement('button');apply.className='btn secondary';apply.textContent='Choisir';
@@ -128,10 +154,44 @@ async function analyzeHighlights(){
       el.append(info,apply);box.append(el);
     });
     box.classList.remove('hidden');const first=chosen[0];$('start').value=first.start.toFixed(1);$('end').value=first.end.toFixed(1);
-    setStatus(`${chosen.length} passages classés. Le premier est pré-sélectionné : vérifie le résultat avant l’export.`);
+    setStatus(`${chosen.length} moments gaming classés. Vérifie le passage avant l’export.`);
   }catch(error){setStatus('L’analyse a rencontré un problème sur ce navigateur. Tu peux toujours découper la vidéo manuellement.');}
   finally{try{await seek(oldTime)}catch{}button.disabled=false}
 }
+async function transcribeGameplay(){
+  const file=fileInput.files?.[0];if(!file){setStatus('Importe une vidéo avant de lancer la transcription.');return}
+  const btn=$('transcribe');btn.disabled=true;btn.textContent='Chargement du modèle…';
+  const results=$('transcriptResults');results.classList.remove('hidden');results.innerHTML='<p class="hint">Préparation du modèle Whisper. Au premier lancement, le téléchargement peut prendre quelques minutes.</p>';
+  try{
+    const {pipeline,env}=await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+    env.allowLocalModels=false;env.useBrowserCache=true;
+    const transcriber=await pipeline('automatic-speech-recognition','Xenova/whisper-tiny',{progress_callback:p=>{if(p.status==='progress'&&p.total)btn.textContent=`Modèle ${Math.round(p.progress||0)} %`;}});
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)throw new Error('Audio non pris en charge');
+    const ac=new AudioCtx();const decoded=await ac.decodeAudioData(await file.arrayBuffer());
+    if(decoded.duration>900)throw new Error('Pour préserver la mémoire du téléphone, limite la transcription à 15 minutes par vidéo.');
+    const targetRate=16000,total=Math.ceil(decoded.duration*targetRate),mono=new Float32Array(total);
+    for(let i=0;i<total;i++){
+      const sourceIndex=i*decoded.sampleRate/targetRate,lo=Math.floor(sourceIndex),hi=Math.min(decoded.length-1,lo+1),frac=sourceIndex-lo;let sample=0;
+      for(let c=0;c<decoded.numberOfChannels;c++){const ch=decoded.getChannelData(c);sample+=(ch[lo]*(1-frac)+ch[hi]*frac)/decoded.numberOfChannels;}mono[i]=sample;
+    }
+    await ac.close();const chunks=[];const chunkSize=30*targetRate;
+    for(let offset=0;offset<mono.length;offset+=chunkSize){
+      btn.textContent=`Transcription ${Math.min(100,Math.round(offset/mono.length*100))} %`;
+      const part=mono.slice(offset,Math.min(mono.length,offset+chunkSize));
+      const out=await transcriber(part,{sampling_rate:targetRate,return_timestamps:true});
+      if(out.chunks?.length){for(const c of out.chunks){const ts=c.timestamp||[0,0];chunks.push({start:offset/targetRate+(ts[0]||0),end:offset/targetRate+(ts[1]||ts[0]||0),text:(c.text||'').trim()});}}
+      else if(out.text)chunks.push({start:offset/targetRate,end:Math.min(decoded.duration,(offset+part.length)/targetRate),text:out.text.trim()});
+    }
+    const useful=chunks.filter(x=>x.text);results.innerHTML='';
+    const heading=document.createElement('strong');heading.textContent=`Transcription terminée · ${useful.length} segments`;results.append(heading);
+    if(!useful.length){const p=document.createElement('p');p.textContent='Aucune parole détectée. Essaie avec une vidéo où les voix sont audibles.';results.append(p)}
+    useful.forEach(seg=>{const row=document.createElement('div');row.className='transcript-row';const txt=document.createElement('span');txt.textContent=`${formatTime(seg.start)} · ${seg.text}`;const use=document.createElement('button');use.className='btn secondary';use.textContent='Créer un clip';use.onclick=()=>{const len=Number($('clipLength').value)||30;const start=Math.max(0,seg.start-len*.35),end=Math.min(duration(),start+len);$('start').value=start.toFixed(1);$('end').value=end.toFixed(1);video.currentTime=start;setStatus('Moment vocal sélectionné. Prévisualise puis exporte ton clip.');};row.append(txt,use);results.append(row)});
+    setStatus('Transcription locale terminée. Sélectionne un passage vocal pour en faire un clip.');
+  }catch(err){results.innerHTML='';const p=document.createElement('p');p.textContent=err.message||'La transcription IA n’a pas pu démarrer sur ce navigateur. Essaie sur un ordinateur ou un navigateur récent.';results.append(p);setStatus('Transcription indisponible. L’analyse gaming visuelle et audio reste utilisable.');}
+  finally{btn.disabled=false;btn.textContent='Transcrire avec l’IA'}
+}
+function formatTime(seconds){const s=Math.max(0,Math.floor(seconds||0));return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
+$('transcribe').onclick=transcribeGameplay;
 $('auto').onclick=analyzeHighlights;
 $('export').onclick=async()=>{const s=Number($('start').value),e=Number($('end').value);if(!valid(s,e))return;const canvas=document.createElement('canvas');canvas.width=720;canvas.height=1280;const ctx=canvas.getContext('2d');const stream=canvas.captureStream(30);let sourceStream=null;try{sourceStream=video.captureStream?video.captureStream():video.mozCaptureStream?.()}catch{}if(sourceStream){for(const track of sourceStream.getAudioTracks())stream.addTrack(track)}const mime=['video/mp4;codecs="avc1.42E01E"','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(x=>MediaRecorder.isTypeSupported(x));if(!mime){setStatus('Ton navigateur ne prend pas en charge l’export vidéo. Essaie Safari ou Chrome à jour.');return}chunks=[];try{recorder=new MediaRecorder(stream,{mimeType:mime})}catch{setStatus('Export non disponible sur ce navigateur.');return}recorder.ondataavailable=ev=>{if(ev.data.size)chunks.push(ev.data)};recorder.onstop=()=>{const blob=new Blob(chunks,{type:mime});const url=URL.createObjectURL(blob);$('download').href=url;$('download').download='shortcut-ai-clip.'+(mime.includes('mp4')?'mp4':'webm');$('download').textContent='↓ Télécharger mon clip';$('download').classList.remove('hidden');setStatus('Export terminé ! Ton clip est prêt.');stream.getTracks().forEach(t=>t.stop())};video.pause();video.currentTime=s;await new Promise(resolve=>video.onseeked=resolve);const draw=()=>{const vw=video.videoWidth,vh=video.videoHeight;if(!vw||!vh)return;const target=9/16,ratio=vw/vh;let sw,sh,sx,sy;if(ratio>target){sh=vh;sw=vh*target;sx=(vw-sw)/2;sy=0}else{sw=vw;sh=vw/target;sx=0;sy=(vh-sh)/2}ctx.fillStyle='#000';ctx.fillRect(0,0,720,1280);ctx.drawImage(video,sx,sy,sw,sh,0,0,720,1280)};recorder.start(500);setStatus('Export en cours… garde cette page ouverte.');let raf;const frame=()=>{draw();if(video.currentTime>=e||video.ended){video.pause();cancelAnimationFrame(raf);if(recorder.state!=='inactive')recorder.stop();return}raf=requestAnimationFrame(frame)};video.play().then(frame).catch(()=>{recorder.stop();setStatus('Impossible de démarrer la vidéo pour l’export.')})};
 
