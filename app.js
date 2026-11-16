@@ -1,5 +1,5 @@
 // Mise à jour GitHub Pages : vérifie version.json puis recharge les fichiers publiés.
-const APP_VERSION='3.1';
+const APP_VERSION='4.0';
 const updateButton=document.getElementById('updateApp');
 const versionLabel=document.getElementById('appVersion');
 if(versionLabel) versionLabel.textContent='VERSION '+APP_VERSION;
@@ -64,7 +64,7 @@ async function analyzeHighlights(){
   const d=duration();
   if(!d){setStatus('La durée de la vidéo est indisponible.');return}
   const button=$('auto');button.disabled=true;$('candidates').classList.add('hidden');$('candidates').innerHTML='';
-  setStatus('V3.1 : préparation de l’analyse visuelle locale…');
+  setStatus('V4.0 : préparation de l’analyse visuelle locale…');
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=72;canvas.height=40;
   const step=Math.max(.65,Math.min(1.25,d/180)),times=[];for(let t=0;t<d;t+=step)times.push(t);
   if(!times.length)times.push(0);
