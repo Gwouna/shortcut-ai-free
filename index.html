@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#08080d"><title>SHORTCUT AI — Video clips</title>
-  <link rel="stylesheet" href="styles.css?v=6.0">
+  <link rel="stylesheet" href="styles.css?v=7.0">
 </head>
 <body>
   <header class="top">
@@ -74,11 +74,13 @@
       <div class="fields"><label>Début (secondes)<input id="start" type="number" min="0" step="0.1" value="0"></label><label>Fin (secondes)<input id="end" type="number" min="0" step="0.1" value="30"></label></div>
       <div class="actions"><button id="setStart" class="btn secondary" disabled>Début = position actuelle</button><button id="setEnd" class="btn secondary" disabled>Fin = position actuelle</button></div>
       <div class="actions"><button id="preview" class="btn secondary" disabled>Prévisualiser le clip</button></div>
-      <button id="export" class="btn primary" disabled>Exporter le clip vertical</button>
+      <button id="export" class="btn secondary" disabled>Exporter ce clip</button>
+      <button id="exportAll" class="btn primary" disabled>✦ Créer automatiquement les meilleurs Shorts</button>
+      <div id="batchResults" class="batch-results hidden" aria-live="polite"></div>
       <div id="status" class="status" aria-live="polite"></div><a id="download" class="download hidden" download="shortcut-ai-clip.webm">Télécharger mon clip</a>
     </section>
     <section class="note"><strong>À savoir sur YouTube</strong><p>SHORTCUT AI lit les vidéos YouTube via le lecteur officiel intégré. Il ne télécharge pas et n'extrait pas les vidéos depuis YouTube. Pour créer et exporter un clip, utilise une copie du fichier original que tu possèdes ou que tu es autorisé à utiliser. Certains créateurs désactivent la lecture intégrée.</p></section>
-    <section class="note"><strong>Comment fonctionne l’analyse V6.0 ?</strong><p>L’analyse combine l’activité visuelle, les changements d’image et l’intensité sonore. La transcription Whisper optionnelle repère les paroles et leurs horodatages. Ces signaux aident à proposer des extraits, mais ne comprennent pas encore automatiquement le sens de toutes les scènes.</p></section>
-    <footer>SHORTCUT AI <span>·</span> <small id="appVersion">VERSION 6.0</small> <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
-  </main><script src="app.js?v=6.0"></script>
+    <section class="note"><strong>Comment fonctionne l’analyse V7.0 ?</strong><p>V7.0 analyse localement l’activité visuelle et l’intensité sonore, puis peut générer plusieurs clips verticaux à partir des meilleurs passages. La transcription Whisper reste disponible en option. Ces signaux aident à classer les extraits, mais ne comprennent pas encore parfaitement le sens des scènes.</p></section>
+    <footer>SHORTCUT AI <span>·</span> <small id="appVersion">VERSION 7.0</small> <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
+  </main><script src="app.js?v=7.0"></script>
 </body></html>
