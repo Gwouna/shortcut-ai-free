@@ -1,3 +1,41 @@
+// Mise à jour GitHub Pages : vérifie version.json puis recharge les fichiers publiés.
+const APP_VERSION='3.1';
+const updateButton=document.getElementById('updateApp');
+const versionLabel=document.getElementById('appVersion');
+if(versionLabel) versionLabel.textContent='VERSION '+APP_VERSION;
+function compareVersions(a,b){
+  const aa=String(a).split('.').map(n=>parseInt(n,10)||0),bb=String(b).split('.').map(n=>parseInt(n,10)||0);
+  for(let i=0;i<Math.max(aa.length,bb.length);i++){const d=(aa[i]||0)-(bb[i]||0);if(d)return d>0?1:-1;}return 0;
+}
+if(updateButton){
+  updateButton.addEventListener('click',async()=>{
+    updateButton.disabled=true;
+    const label=updateButton.querySelector('span');
+    if(label)label.textContent='Vérification…';
+    try{
+      const response=await fetch('./version.json?check='+Date.now(),{cache:'no-store'});
+      if(!response.ok)throw new Error('version-file-unavailable');
+      const data=await response.json();
+      const latest=String(data.version||APP_VERSION);
+      if(compareVersions(latest,APP_VERSION)>0){
+        if(label)label.textContent='Installation…';
+        const target=new URL(window.location.href);
+        target.searchParams.set('v',latest);
+        target.searchParams.set('refresh',String(Date.now()));
+        window.location.replace(target.toString());
+        return;
+      }
+      if(label)label.textContent='Déjà à jour';
+      updateButton.classList.add('is-updated');
+      setTimeout(()=>{if(label)label.textContent='Mettre à jour';updateButton.classList.remove('is-updated');updateButton.disabled=false;},2200);
+    }catch(error){
+      if(label)label.textContent='Réessayer';
+      updateButton.title='Impossible de vérifier la mise à jour. Vérifie ta connexion puis réessaie.';
+      setTimeout(()=>{if(label)label.textContent='Mettre à jour';updateButton.disabled=false;},2500);
+    }
+  });
+}
+
 const $=id=>document.getElementById(id);const fileInput=$('file'),video=$('video');let fileUrl=null,recorder=null,chunks=[];
 function setStatus(s){$('status').textContent=s}
 function duration(){return Number.isFinite(video.duration)?video.duration:0}
@@ -26,7 +64,7 @@ async function analyzeHighlights(){
   const d=duration();
   if(!d){setStatus('La durée de la vidéo est indisponible.');return}
   const button=$('auto');button.disabled=true;$('candidates').classList.add('hidden');$('candidates').innerHTML='';
-  setStatus('V3.0 : préparation de l’analyse visuelle locale…');
+  setStatus('V3.1 : préparation de l’analyse visuelle locale…');
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=72;canvas.height=40;
   const step=Math.max(.65,Math.min(1.25,d/180)),times=[];for(let t=0;t<d;t+=step)times.push(t);
   if(!times.length)times.push(0);
@@ -51,7 +89,7 @@ async function analyzeHighlights(){
       const exposure=Math.max(0,1-Math.abs(brightness-.48)/.52);
       samples.push({time:times[i],motion:motionScore,cut:cutScore,detail:Math.min(1,edgeScore*3.4+contrast*.25),exposure});
       previous=lums;
-      if(i%5===0||i===times.length-1)setStatus(`V3.0 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
+      if(i%5===0||i===times.length-1)setStatus(`V3.1 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
     }
     ['motion','cut','detail'].forEach(k=>normalizeFeature(samples,k));
     const requested=Number($('clipLength')?.value)||30;
@@ -77,7 +115,7 @@ async function analyzeHighlights(){
     }
     if(!chosen.length){setStatus('Vidéo trop courte ou analyse impossible. Choisis les temps manuellement.');return}
     const box=$('candidates');
-    const intro=document.createElement('p');intro.className='hint';intro.textContent='Classement V3.0 : mouvements, changements de plans, détails et qualité visuelle. Ce score mesure le dynamisme des images, pas la viralité ni le sens des dialogues.';box.append(intro);
+    const intro=document.createElement('p');intro.className='hint';intro.textContent='Classement V3.1 : mouvements, changements de plans, détails et qualité visuelle. Ce score mesure le dynamisme des images, pas la viralité ni le sens des dialogues.';box.append(intro);
     chosen.forEach((item,index)=>{
       const el=document.createElement('div');el.className='candidate';
       const info=document.createElement('div');info.className='candidate-info';

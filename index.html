@@ -3,10 +3,13 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#080808"><title>SHORTCUT AI — Video clips</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=3.1">
 </head>
 <body>
-  <header class="top"><a class="brand" href="#"><span class="mark">S</span> SHORTCUT <b>AI</b></a><div class="top-meta"><span class="version-badge">VERSION 3.0</span><span class="local">TRAITEMENT LOCAL · GRATUIT</span></div></header>
+  <header class="top">
+    <div class="brand-row"><a class="brand" href="#"><span class="mark">S</span> SHORTCUT <b>AI</b></a><button id="updateApp" class="update-btn" type="button" aria-label="Vérifier et installer la dernière mise à jour">↻ <span>Mettre à jour</span></button></div>
+    <div class="top-meta"><span class="local">TRAITEMENT LOCAL · GRATUIT</span></div>
+  </header>
   <main>
     <section class="hero"><p class="eyebrow">YOUR VIDEO. YOUR BEST MOMENTS.</p><h1>Découpe tes vidéos.<br><span>Garde l’essentiel.</span></h1><p class="sub">Importe une vidéo : SHORTCUT AI repère les séquences visuellement les plus dynamiques, te propose les meilleurs extraits et prépare tes clips verticaux.</p></section>
     <section class="panel youtube-panel">
@@ -55,6 +58,6 @@
     </section>
     <section class="note"><strong>À savoir sur YouTube</strong><p>SHORTCUT AI lit les vidéos YouTube via le lecteur officiel intégré. Il ne télécharge pas et n'extrait pas les vidéos depuis YouTube. Pour créer et exporter un clip, utilise une copie du fichier original que tu possèdes ou que tu es autorisé à utiliser. Certains créateurs désactivent la lecture intégrée.</p></section>
     <section class="note"><strong>Comment fonctionne l’analyse V3.0 ?</strong><p>L’analyse locale combine plusieurs indices visuels : mouvements entre les images, changements de plans, contraste et détails. Elle classe les passages les plus dynamiques sans envoyer la vidéo sur un serveur. Elle ne comprend pas encore les dialogues, les émotions ou le sens des actions : cette compréhension par IA nécessitera une brique de transcription et un modèle d’analyse distincts.</p></section>
-    <footer>SHORTCUT AI <span>·</span> VERSION 3.0 <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
-  </main><script src="app.js"></script>
+    <footer>SHORTCUT AI <span>·</span> <small id="appVersion">VERSION 3.1</small> <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
+  </main><script src="app.js?v=3.1"></script>
 </body></html>
