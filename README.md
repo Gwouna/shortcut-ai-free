@@ -10,7 +10,7 @@ Cette version est une application web statique. Elle ne nécessite ni Render, ni
 5. Attendre la publication et ouvrir l'URL GitHub Pages affichée.
 
 ## Limites honnêtes du prototype
-- Le bouton de suggestion repère des changements visuels simples ; ce n'est pas une IA sémantique.
+- Le repérage automatique classe jusqu’à cinq fenêtres vidéo selon leur activité visuelle (différences entre images). Il ne comprend pas encore le sens des paroles, des actions ou de l’histoire : ce n’est pas une IA sémantique.
 - L'export est réalisé par `MediaRecorder` dans le navigateur. Le format (MP4 ou WebM), l'audio et les performances dépendent du navigateur et de l'appareil.
 - L'export recadre au centre en 9:16. Il n'y a pas encore de suivi automatique du visage ni de sous-titrage automatique.
 - Les vidéos ne sont pas téléversées sur un serveur par cette application.

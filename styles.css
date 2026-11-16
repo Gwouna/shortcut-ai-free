@@ -7,3 +7,5 @@
 #youtubePlayer{width:100%;height:100%}
 .yt-fields{margin-top:16px}
 @media(max-width:520px){.youtube-input-row{grid-template-columns:1fr}.youtube-input-row .primary{width:100%}}
+
+.candidates{display:grid;gap:9px;margin:16px 0}.candidate{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;background:#090909;border:1px solid #333;border-radius:9px}.candidate strong{display:block;font-size:12px}.candidate small{display:block;color:#999;font-size:11px;margin-top:5px}.candidate .btn{white-space:nowrap;min-height:38px;padding:9px 12px}.analysis-progress{height:4px;background:#333;border-radius:8px;overflow:hidden;margin-top:10px}.analysis-progress span{display:block;height:100%;width:0;background:#eee;transition:width .15s}

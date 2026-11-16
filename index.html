@@ -41,13 +41,14 @@
       <div class="panel-head"><div><p class="eyebrow">03 / DÉCOUPAGE</p><h2>Créer un clip</h2></div><span class="tag">FORMAT 9:16</span></div>
       <div class="fields"><label>Début (secondes)<input id="start" type="number" min="0" step="0.1" value="0"></label><label>Fin (secondes)<input id="end" type="number" min="0" step="0.1" value="30"></label></div>
       <div class="actions"><button id="setStart" class="btn secondary" disabled>Début = position actuelle</button><button id="setEnd" class="btn secondary" disabled>Fin = position actuelle</button></div>
-      <div class="actions"><button id="auto" class="btn secondary" disabled>✦ Suggérer des passages</button><button id="preview" class="btn secondary" disabled>Prévisualiser le clip</button></div>
+      <div class="actions"><button id="auto" class="btn secondary" disabled>✦ Analyser et trouver les Shorts</button><button id="preview" class="btn secondary" disabled>Prévisualiser le clip</button></div>
       <p id="hint" class="hint">Importe une vidéo pour commencer.</p>
+      <div id="candidates" class="candidates hidden" aria-live="polite"></div>
       <button id="export" class="btn primary" disabled>Exporter le clip vertical</button>
       <div id="status" class="status" aria-live="polite"></div><a id="download" class="download hidden" download="shortcut-ai-clip.webm">Télécharger mon clip</a>
     </section>
     <section class="note"><strong>À savoir sur YouTube</strong><p>SHORTCUT AI lit les vidéos YouTube via le lecteur officiel intégré. Il ne télécharge pas et n'extrait pas les vidéos depuis YouTube. Pour créer et exporter un clip, utilise une copie du fichier original que tu possèdes ou que tu es autorisé à utiliser. Certains créateurs désactivent la lecture intégrée.</p></section>
-    <section class="note"><strong>À savoir</strong><p>SHORTCUT AI version gratuite effectue le découpage sur ton appareil. Les suggestions automatiques sont des repères heuristiques (changements visuels), pas une analyse par IA cloud. L’export dépend des formats vidéo pris en charge par ton navigateur et peut être lent sur les grosses vidéos.</p></section>
+    <section class="note"><strong>À savoir</strong><p>SHORTCUT AI version gratuite effectue le découpage sur ton appareil. Le repérage automatique local classe les séquences selon leur activité visuelle. Il ne comprend pas encore le sens des paroles ou des actions comme le ferait une IA sémantique. L’export dépend des formats vidéo pris en charge par ton navigateur et peut être lent sur les grosses vidéos.</p></section>
     <footer>SHORTCUT AI <span>·</span> SIMPLE. RAPIDE. LOCAL.</footer>
   </main><script src="app.js"></script>
 </body></html>
