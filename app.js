@@ -1,6 +1,6 @@
 // Mise à jour GitHub Pages : vérifie version.json puis recharge les fichiers publiés.
-const APP_VERSION='8.2'; // identifiant technique monotone pour assurer la mise à jour depuis V1.8
-const DISPLAY_VERSION='1.9';
+const APP_VERSION='9.0'; // identifiant technique monotone depuis V1.9
+const DISPLAY_VERSION='2.0';
 const VERSION_LABEL='V'+DISPLAY_VERSION;
 const updateButton=document.getElementById('updateApp');
 const versionLabel=document.getElementById('appVersion');
@@ -233,6 +233,29 @@ async function transcribeVideo(){
 function formatTime(seconds){const s=Math.max(0,Math.floor(seconds||0));return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
 $('transcribe').onclick=transcribeVideo;
 $('auto').onclick=analyzeHighlights;
+
+// V2.0 : chaîne automatique locale — transcription facultative, analyse, puis export des cinq clips.
+const oneClickButton=$('oneClickCreate');
+fileInput.addEventListener('change',()=>{if(oneClickButton)oneClickButton.disabled=!fileInput.files?.length;});
+if(oneClickButton){
+  oneClickButton.addEventListener('click',async()=>{
+    if(!fileInput.files?.[0])return;
+    oneClickButton.disabled=true;
+    const original=oneClickButton.textContent;
+    try{
+      if(!transcriptSegments.length){
+        setStatus('Étape 1/3 · préparation de la transcription locale…');
+        await transcribeVideo();
+      }
+      setStatus(transcriptSegments.length?'Étape 2/3 · analyse des images, du son et des paroles…':'Étape 2/3 · analyse des images et du son…');
+      await analyzeHighlights();
+      if(!chosenCandidates.length)throw new Error('Aucun passage n’a pu être sélectionné. Essaie une vidéo plus courte ou utilise l’analyse manuelle.');
+      setStatus('Étape 3/3 · création automatique des Shorts…');
+      $('exportAll').click();
+    }catch(err){setStatus(err.message||'La création automatique a échoué.');}
+    finally{oneClickButton.textContent=original;oneClickButton.disabled=!fileInput.files?.length;}
+  });
+}
 async function renderClip(s,e,onProgress){
   if(!valid(s,e))throw new Error('Plage de clip invalide.');
   if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)throw new Error('Export vidéo non pris en charge par ce navigateur. Essaie Chrome ou Safari à jour.');

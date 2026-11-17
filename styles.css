@@ -12,7 +12,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opa
 .brand-row{display:flex;align-items:center;gap:14px;min-width:0}
 .brand{color:white;text-decoration:none;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.7px;display:flex;align-items:center;gap:10px}
 .brand b{font-weight:500;color:var(--purple)}
-.mark{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:linear-gradient(140deg,#b9a2ff,#7045ed 70%);box-shadow:0 5px 22px rgba(128,87,255,.32);font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;color:white}
+.brand-logo{width:38px;height:38px;object-fit:contain;border-radius:9px;filter:drop-shadow(0 4px 12px rgba(128,87,255,.22))}
 .update-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 12px;border:1px solid rgba(167,139,250,.34);border-radius:10px;background:rgba(128,87,255,.11);color:#d8ccff;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;transition:.2s}
 .update-btn:hover{background:rgba(128,87,255,.2);border-color:var(--purple);transform:translateY(-1px)}
 .update-btn:active{transform:scale(.98)}.update-btn:disabled{opacity:.65;cursor:wait}.update-btn.is-updated{border-color:#64d9bd;color:#a8f5df}
@@ -64,7 +64,7 @@ footer{padding:30px 0 12px;color:#77758d;font-size:9px;letter-spacing:2px;text-a
 .analysis-settings select{background:#090910;color:#f5f3ff;border:1px solid #343247;border-radius:10px;padding:11px 13px;font-size:14px;min-height:43px;outline:none}
 button:focus-visible,a:focus-visible,.drop:focus-within{outline:2px solid #bba7ff;outline-offset:3px}
 @media(max-width:600px){
- main{padding:38px 15px 25px}.top{min-height:66px;padding:0 14px}.brand{font-size:12px;letter-spacing:1px;gap:7px}.mark{width:30px;height:30px;border-radius:9px;font-size:17px}
+ main{padding:38px 15px 25px}.top{min-height:66px;padding:0 14px}.brand{font-size:12px;letter-spacing:1px;gap:7px}.brand-logo{width:32px;height:32px;border-radius:8px}
  .brand-row{gap:8px}.update-btn{font-size:10px;padding:7px 9px;min-height:33px}.local{font-size:7px;letter-spacing:.6px}
  .hero{padding:16px 2px 29px}.hero h1{font-size:clamp(42px,11vw,58px);letter-spacing:-2.7px;margin:16px 0}.sub{font-size:13px;line-height:1.7}
  .panel{padding:19px 16px;border-radius:17px;margin:13px 0}.panel-head{align-items:flex-start;margin-bottom:18px}.panel h2{font-size:21px}.tag{font-size:7px;padding:6px 7px;letter-spacing:.7px}
@@ -114,3 +114,7 @@ button:focus-visible,a:focus-visible,.drop:focus-within{outline:2px solid #bba7f
 .subtitle-option span{display:grid;gap:4px}
 .subtitle-option strong{font-size:.92rem}
 .subtitle-option small{font-size:.78rem;opacity:.68;line-height:1.4}
+
+/* V2.0 — création guidée en un clic et nouvelle identité vidéo */
+#oneClickCreate{margin-top:16px;background:linear-gradient(100deg,#a58bff,#8057ff 58%,#6578ed);}
+.brand span{display:inline-flex;align-items:center;gap:5px}
