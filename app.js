@@ -1,5 +1,5 @@
 // Mise à jour GitHub Pages : vérifie version.json puis recharge les fichiers publiés.
-const APP_VERSION='7.0';
+const APP_VERSION='8.0';
 const updateButton=document.getElementById('updateApp');
 const versionLabel=document.getElementById('appVersion');
 if(versionLabel) versionLabel.textContent='VERSION '+APP_VERSION;
@@ -36,11 +36,11 @@ if(updateButton){
   });
 }
 
-const $=id=>document.getElementById(id);const fileInput=$('file'),video=$('video');let fileUrl=null,recorder=null,chunks=[],chosenCandidates=[];
+const $=id=>document.getElementById(id);const fileInput=$('file'),video=$('video');let fileUrl=null,recorder=null,chunks=[],chosenCandidates=[],transcriptSegments=[];
 function setStatus(s){$('status').textContent=s}
 function duration(){return Number.isFinite(video.duration)?video.duration:0}
 function update(){const d=duration();$('start').max=d;$('end').max=d;if(d){$('end').value=Math.min(Number($('end').value)||30,d);$('hint').textContent=`Durée de la vidéo : ${d.toFixed(1)} secondes.`}}
-fileInput.addEventListener('change',()=>{const f=fileInput.files?.[0];if(!f)return;if(!f.type.startsWith('video/')){setStatus('Choisis un fichier vidéo.');return}if(fileUrl)URL.revokeObjectURL(fileUrl);fileUrl=URL.createObjectURL(f);video.src=fileUrl;$('videoWrap').classList.remove('hidden');$('fileName').textContent=f.name;['setStart','setEnd','auto','transcribe','preview','export','clipLength'].forEach(id=>{if($(id))$(id).disabled=false});$('download').classList.add('hidden');setStatus('Vidéo chargée sur ton appareil.');video.onloadedmetadata=()=>{update();$('end').value=Math.min(30,duration())}});
+fileInput.addEventListener('change',()=>{const f=fileInput.files?.[0];if(!f)return;if(!f.type.startsWith('video/')){setStatus('Choisis un fichier vidéo.');return}if(fileUrl)URL.revokeObjectURL(fileUrl);fileUrl=URL.createObjectURL(f);transcriptSegments=[];video.src=fileUrl;$('videoWrap').classList.remove('hidden');$('fileName').textContent=f.name;['setStart','setEnd','auto','transcribe','preview','export','clipLength'].forEach(id=>{if($(id))$(id).disabled=false});$('download').classList.add('hidden');setStatus('Vidéo chargée sur ton appareil.');video.onloadedmetadata=()=>{update();$('end').value=Math.min(30,duration())}});
 $('setStart').onclick=()=>{$('start').value=video.currentTime.toFixed(1)};$('setEnd').onclick=()=>{$('end').value=video.currentTime.toFixed(1)};
 $('preview').onclick=()=>{const s=Number($('start').value),e=Number($('end').value);if(!valid(s,e))return;video.currentTime=s;video.play();const stop=()=>{if(video.currentTime>=e){video.pause();video.removeEventListener('timeupdate',stop)}};video.addEventListener('timeupdate',stop)};
 function valid(s,e){if(s<0||e<=s||e>duration()){setStatus('Vérifie le début et la fin du clip.');return false}if(e-s>90){setStatus('Pour cette version gratuite, limite le clip à 90 secondes.');return false}return true}
@@ -54,12 +54,31 @@ function normalizeFeature(samples,key){
 }
 function makeReasons(item){
   const reasons=[];
+  if(item.speech>.58)reasons.push('paroles à fort potentiel');
   if(item.motion>.55)reasons.push('mouvements soutenus');
   if(item.audio>.55)reasons.push('intensité audio élevée');
   if(item.cuts>.45)reasons.push('changements de plans');
   if(item.detail>.55)reasons.push('images riches en détails');
   if(!reasons.length)reasons.push('activité visuelle régulière');
   return reasons.slice(0,2).join(' · ');
+}
+// Score linguistique indicatif : il repère des signaux dans la transcription, sans prétendre comprendre le contexte comme un humain.
+function scoreTranscriptWindow(start,end){
+  const parts=transcriptSegments.filter(x=>x.end>=start&&x.start<=end&&x.text);
+  if(!parts.length)return {score:0,text:'',available:false};
+  const cues=/\b(incroyable|impossible|jamais|énorme|dingue|attends|regarde|pourquoi|comment|bravo|attention|incroyablement|surprise|surprenant|fou|folie|gagné|perdu|record|but|goal|wow|amazing|unbelievable|wait|look|why|how|never|crazy|insane|no way|let's go|oh my god|omg|winner|fail|win|lose|secret|best|worst)\b/giu;
+  let total=0,weight=0;const texts=[];
+  for(const part of parts){
+    const text=part.text.trim();if(!text)continue;texts.push(text);
+    const words=text.match(/[\p{L}\p{N}']+/gu)||[];if(!words.length)continue;
+    const cueCount=(text.match(cues)||[]).length;
+    const punctuation=(/[!?]{1,}/.test(text)?0.18:0)+(/[.!?]$/.test(text)?0.08:0);
+    const reaction=/(\b(je|j'ai|on|nous|i|we)\b)/iu.test(text)?0.08:0;
+    const density=Math.min(1,words.length/18);
+    const score=Math.min(1,0.18+density*.22+Math.min(.42,cueCount*.14)+punctuation+reaction);
+    const w=Math.max(1,words.length);total+=score*w;weight+=w;
+  }
+  return {score:weight?total/weight:0,text:texts.join(' ').slice(0,260),available:weight>0};
 }
 async function getAudioEnergy(){
   const file=fileInput.files?.[0];if(!file)return [];
@@ -81,7 +100,7 @@ async function analyzeHighlights(){
   const d=duration();
   if(!d){setStatus('La durée de la vidéo est indisponible.');return}
   const button=$('auto');button.disabled=true;$('candidates').classList.add('hidden');$('candidates').innerHTML='';
-  setStatus('V7.0 : analyse des images et de l’intensité sonore…');
+  setStatus('V8.0 : analyse des images, du son et des paroles disponibles…');
   const audioEnergy=await getAudioEnergy();
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=72;canvas.height=40;
   const step=Math.max(.65,Math.min(1.25,d/180)),times=[];for(let t=0;t<d;t+=step)times.push(t);
@@ -107,7 +126,7 @@ async function analyzeHighlights(){
       const exposure=Math.max(0,1-Math.abs(brightness-.48)/.52);
       samples.push({time:times[i],motion:motionScore,cut:cutScore,detail:Math.min(1,edgeScore*3.4+contrast*.25),exposure});
       previous=lums;
-      if(i%5===0||i===times.length-1)setStatus(`V7.0 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
+      if(i%5===0||i===times.length-1)setStatus(`V8.0 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
     }
     ['motion','cut','detail'].forEach(k=>normalizeFeature(samples,k));
     const requested=Number($('clipLength')?.value)||30;
@@ -124,6 +143,8 @@ async function analyzeHighlights(){
       const dynamic=Math.min(1,motion*.36+cuts*.34+detail*.30);
       const peakMoment=Math.max(peak('cutN'),peak('motionN'));
       const audioScore=getAudioWindowScore(audioEnergy,start,end);
+      const speechData=scoreTranscriptWindow(start,end);
+      const speechScore=speechData.score;
       const profile=$('contentProfile')?.value||'balanced';
       let visualWeight=.68,audioWeight=.32;
       if(profile==='reaction'){visualWeight=.48;audioWeight=.52}
@@ -131,9 +152,11 @@ async function analyzeHighlights(){
       if(profile==='action'){visualWeight=.68;audioWeight=.32}
       if(profile==='story'){visualWeight=.82;audioWeight=.18}
       const visualScore=(dynamic*.78+peakMoment*.14+exposure*.08);
-      const combined=audioEnergy.length?visualScore*visualWeight+audioScore*audioWeight:visualScore;
+      const baseScore=audioEnergy.length?visualScore*visualWeight+audioScore*audioWeight:visualScore;
+      const speechWeight=speechData.available?(profile==='speech'?.40:profile==='reaction'?.34:.28):0;
+      const combined=baseScore*(1-speechWeight)+speechScore*speechWeight;
       const score=Math.max(0,Math.min(100,combined*100));
-      windows.push({start,end,score,motion,cuts,detail,exposure,audio:audioScore});
+      windows.push({start,end,score,motion,cuts,detail,exposure,audio:audioScore,speech:speechScore,transcript:speechData.text});
     }
     windows.sort((a,b)=>b.score-a.score);const chosen=[];
     for(const item of windows){
@@ -145,12 +168,12 @@ async function analyzeHighlights(){
     $('exportAll').disabled=false;
     $('batchResults').classList.add('hidden');$('batchResults').innerHTML='';
     const box=$('candidates');
-    const intro=document.createElement('p');intro.className='hint';intro.textContent=audioEnergy.length?'Classement V7.0 : activité visuelle + intensité audio. Les pics sonores peuvent signaler un passage marquant, sans en comprendre automatiquement le sens.':'Classement V7.0 : activité visuelle. Analyse audio indisponible sur ce navigateur.';box.append(intro);
+    const intro=document.createElement('p');intro.className='hint';intro.textContent=transcriptSegments.length?'Classement V8.0 : indices visuels, audio et linguistiques issus de la transcription Whisper. Les indices de langage aident au tri, mais ne garantissent pas qu’un passage soit drôle ou viral.':audioEnergy.length?'Classement V8.0 : activité visuelle + intensité audio. Pour ajouter les indices liés aux paroles, lance d’abord la transcription Whisper puis relance l’analyse.':'Classement V8.0 : activité visuelle. Analyse audio indisponible sur ce navigateur.';box.append(intro);
     chosen.forEach((item,index)=>{
       const el=document.createElement('div');el.className='candidate';
       const info=document.createElement('div');info.className='candidate-info';
       const title=document.createElement('strong');title.textContent=`${index+1}. ${index===0?'Meilleur score visuel':'Passage proposé'}`;
-      const detail=document.createElement('small');detail.textContent=`${item.start.toFixed(1)} s → ${item.end.toFixed(1)} s · ${Math.round(item.score)}/100 · ${makeReasons(item)}${item.audio>.5?' · pic audio':''}`;
+      const detail=document.createElement('small');detail.textContent=`${item.start.toFixed(1)} s → ${item.end.toFixed(1)} s · ${Math.round(item.score)}/100 · ${makeReasons(item)}${item.transcript?' · transcription prise en compte':''}`;
       const meter=document.createElement('div');meter.className='score-track';const fill=document.createElement('span');fill.style.width=`${item.score}%`;meter.append(fill);
       info.append(title,detail,meter);
       const apply=document.createElement('button');apply.className='btn secondary';apply.textContent='Choisir';
@@ -186,11 +209,11 @@ async function transcribeVideo(){
       if(out.chunks?.length){for(const c of out.chunks){const ts=c.timestamp||[0,0];chunks.push({start:offset/targetRate+(ts[0]||0),end:offset/targetRate+(ts[1]||ts[0]||0),text:(c.text||'').trim()});}}
       else if(out.text)chunks.push({start:offset/targetRate,end:Math.min(decoded.duration,(offset+part.length)/targetRate),text:out.text.trim()});
     }
-    const useful=chunks.filter(x=>x.text);results.innerHTML='';
+    const useful=chunks.filter(x=>x.text);transcriptSegments=useful;results.innerHTML='';
     const heading=document.createElement('strong');heading.textContent=`Transcription terminée · ${useful.length} segments`;results.append(heading);
     if(!useful.length){const p=document.createElement('p');p.textContent='Aucune parole détectée. Essaie avec une vidéo où les voix sont audibles.';results.append(p)}
     useful.forEach(seg=>{const row=document.createElement('div');row.className='transcript-row';const txt=document.createElement('span');txt.textContent=`${formatTime(seg.start)} · ${seg.text}`;const use=document.createElement('button');use.className='btn secondary';use.textContent='Créer un clip';use.onclick=()=>{const len=Number($('clipLength').value)||30;const start=Math.max(0,seg.start-len*.35),end=Math.min(duration(),start+len);$('start').value=start.toFixed(1);$('end').value=end.toFixed(1);video.currentTime=start;setStatus('Moment vocal sélectionné. Prévisualise puis exporte ton clip.');};row.append(txt,use);results.append(row)});
-    setStatus('Transcription locale terminée. Sélectionne un passage vocal pour en faire un clip.');
+    setStatus('Transcription locale terminée. Relance « Analyser » pour intégrer les paroles au classement V8.0.');
   }catch(err){results.innerHTML='';const p=document.createElement('p');p.textContent=err.message||'La transcription IA n’a pas pu démarrer sur ce navigateur. Essaie sur un ordinateur ou un navigateur récent.';results.append(p);setStatus('Transcription indisponible. L’analyse visuelle et audio reste utilisable.');}
   finally{btn.disabled=false;btn.textContent='Transcrire avec l’IA'}
 }

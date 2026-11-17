@@ -1,29 +1,28 @@
-# SHORTCUT AI — version 7.0
+# SHORTCUT AI — version 8.0
 
-SHORTCUT AI est un outil généraliste de création de clips courts à partir de vidéos que l'utilisateur importe : podcasts, interviews, sport, gaming, vlogs, humour, tutoriels et autres contenus.
+SHORTCUT AI est un outil généraliste de création de clips courts à partir de vidéos importées : podcasts, interviews, sport, gaming, vlogs, humour, tutoriels et autres contenus.
 
-## Nouveautés V7.0
-- Conserve l'analyse locale d'activité visuelle et d'intensité sonore de V6.0.
-- Conserve la transcription Whisper Tiny en option dans le navigateur.
-- Après l'analyse, les cinq meilleurs passages sont proposés.
-- Nouveau bouton de génération en série : crée automatiquement un fichier vidéo vertical 9:16 pour chacun des passages proposés.
-- Chaque clip est proposé dans une liste de téléchargements séparés, pour une meilleure compatibilité mobile.
-- Export local via Canvas et MediaRecorder, sans serveur payant ni abonnement.
-- Bouton de mise à jour et version 7.0.
+## Nouveautés V8.0
+- Le classement peut désormais intégrer la transcription Whisper, si elle a été lancée avant l'analyse.
+- Les fenêtres sont évaluées à partir des signaux visuels, de l'intensité audio et d'indices linguistiques simples (expressions de réaction, ponctuation expressive, densité de parole).
+- Le profil Podcast / interview donne davantage de poids aux indices de transcription ; le profil Humour / réactions leur donne également un poids renforcé.
+- Les cinq meilleurs passages sont toujours proposés et peuvent être exportés en série au format vertical 9:16.
+- Le traitement des vidéos importées reste local dans le navigateur.
 
-## Utilisation
+## Utilisation conseillée
 1. Importer le fichier vidéo original.
-2. Choisir le profil de contenu et la durée souhaitée.
-3. Lancer « Analyser et trouver les meilleurs moments ».
-4. Cliquer sur « Créer automatiquement les meilleurs Shorts ».
-5. Attendre la fin du traitement, puis télécharger les clips un par un.
+2. Choisir le profil et la durée des clips.
+3. Pour enrichir le classement avec les paroles : cliquer sur « Transcrire avec l'IA » et attendre la fin.
+4. Cliquer sur « Analyser et trouver les meilleurs moments ».
+5. Vérifier les passages proposés, puis créer les Shorts et télécharger les fichiers.
 
 ## Limites importantes
-- L'analyse locale classe des fenêtres à partir de signaux visuels (mouvement, changements d'image, détails, exposition) et de l'intensité audio. Elle ne comprend pas encore réellement le sens des scènes, ne détecte pas avec certitude les événements marquants et ne prédit pas la viralité.
-- Whisper transcrit les paroles mais ne juge pas automatiquement si une phrase est drôle, importante ou virale.
+- Les indices linguistiques sont heuristiques : ils ne constituent pas une compréhension complète du sens, de l'humour, de l'émotion ou du contexte. Une phrase contenant un mot expressif n'est pas nécessairement un bon clip.
+- Sans transcription préalable, le classement repose sur les signaux visuels et audio, comme en V7.0.
+- Whisper Tiny peut mal reconnaître certains mots, accents, noms propres ou langues ; la qualité du classement dépend de la transcription.
 - Le cadrage 9:16 est centré, sans suivi automatique du visage ou du sujet.
 - L'export dépend des capacités du navigateur et de l'appareil. Sur iPhone, garder l'application ouverte pendant la création ; le traitement de plusieurs clips peut être lent.
-- Les clips sont créés à partir d'un fichier vidéo importé. Le lecteur YouTube intégré sert uniquement à lire et repérer des timestamps : le lien YouTube seul ne permet pas d'extraire la vidéo ni de la monter. Pour analyser un contenu YouTube, importer un fichier source que l'utilisateur est autorisé à utiliser.
+- Le lecteur YouTube intégré sert à lire et repérer des timestamps : le lien YouTube seul ne permet pas d'extraire la vidéo. Pour analyser et exporter un contenu, importer un fichier source que l'utilisateur est autorisé à utiliser.
 - Le modèle Whisper est téléchargé au premier usage (connexion Internet requise). Aucun serveur ni API payante n'est utilisé pour l'analyse et l'export des fichiers importés.
 
 ## Installation GitHub Pages
