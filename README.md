@@ -26,3 +26,6 @@ SHORTCUT AI est un outil généraliste de création de clips courts à partir de
 Remplacer à la racine du dépôt : `index.html`, `styles.css`, `app.js`, `README.md`, `version.json` et ajouter `shortcut-logo.png`, puis committer les changements. Le bouton « Mettre à jour » vérifie `version.json`.
 
 Version technique : 9.0. Version affichée : V2.0.
+
+
+Logo officiel : `shortcut-logo.png`. L’icône iPhone utilise exactement le même visuel via `apple-touch-icon.png`.
