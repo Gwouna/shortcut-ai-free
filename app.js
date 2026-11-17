@@ -1,8 +1,10 @@
 // Mise à jour GitHub Pages : vérifie version.json puis recharge les fichiers publiés.
-const APP_VERSION='8.0';
+const APP_VERSION='8.1'; // identifiant technique de transition pour les anciennes installations
+const DISPLAY_VERSION='1.8';
+const VERSION_LABEL='V'+DISPLAY_VERSION;
 const updateButton=document.getElementById('updateApp');
 const versionLabel=document.getElementById('appVersion');
-if(versionLabel) versionLabel.textContent='VERSION '+APP_VERSION;
+if(versionLabel) versionLabel.textContent='VERSION '+DISPLAY_VERSION;
 function compareVersions(a,b){
   const aa=String(a).split('.').map(n=>parseInt(n,10)||0),bb=String(b).split('.').map(n=>parseInt(n,10)||0);
   for(let i=0;i<Math.max(aa.length,bb.length);i++){const d=(aa[i]||0)-(bb[i]||0);if(d)return d>0?1:-1;}return 0;
@@ -96,11 +98,19 @@ async function getAudioEnergy(){
   }catch(e){return []}
 }
 function getAudioWindowScore(audio,start,end){const values=audio.filter(x=>x.time>=start&&x.time<end).map(x=>x.score);if(!values.length)return 0;return Math.min(1,values.reduce((a,b)=>a+b,0)/values.length*.65+Math.max(...values)*.35)}
+function detectSceneChanges(samples){
+  const peaks=[];
+  for(let i=1;i<samples.length-1;i++){
+    const value=samples[i].cutN||0,prev=samples[i-1].cutN||0,next=samples[i+1].cutN||0;
+    if(value>=.76&&value>=prev&&value>=next&&(peaks.length===0||samples[i].time-peaks[peaks.length-1]>=1.5))peaks.push(samples[i].time);
+  }
+  return peaks;
+}
 async function analyzeHighlights(){
   const d=duration();
   if(!d){setStatus('La durée de la vidéo est indisponible.');return}
   const button=$('auto');button.disabled=true;$('candidates').classList.add('hidden');$('candidates').innerHTML='';
-  setStatus('V8.0 : analyse des images, du son et des paroles disponibles…');
+  setStatus(`${VERSION_LABEL} : analyse des images, du son et des paroles disponibles…`);
   const audioEnergy=await getAudioEnergy();
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=72;canvas.height=40;
   const step=Math.max(.65,Math.min(1.25,d/180)),times=[];for(let t=0;t<d;t+=step)times.push(t);
@@ -126,9 +136,10 @@ async function analyzeHighlights(){
       const exposure=Math.max(0,1-Math.abs(brightness-.48)/.52);
       samples.push({time:times[i],motion:motionScore,cut:cutScore,detail:Math.min(1,edgeScore*3.4+contrast*.25),exposure});
       previous=lums;
-      if(i%5===0||i===times.length-1)setStatus(`V8.0 : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
+      if(i%5===0||i===times.length-1)setStatus(`${VERSION_LABEL} : analyse des images… ${Math.round((i+1)/times.length*100)} %`);
     }
     ['motion','cut','detail'].forEach(k=>normalizeFeature(samples,k));
+    const sceneChanges=detectSceneChanges(samples);
     const requested=Number($('clipLength')?.value)||30;
     const clipLength=Math.min(requested,d),stride=Math.max(1,clipLength/5),windows=[];
     const starts=[];for(let s=0;s+clipLength<=d+.01;s+=stride)starts.push(s);
@@ -156,7 +167,8 @@ async function analyzeHighlights(){
       const speechWeight=speechData.available?(profile==='speech'?.40:profile==='reaction'?.34:.28):0;
       const combined=baseScore*(1-speechWeight)+speechScore*speechWeight;
       const score=Math.max(0,Math.min(100,combined*100));
-      windows.push({start,end,score,motion,cuts,detail,exposure,audio:audioScore,speech:speechScore,transcript:speechData.text});
+      const sceneCount=sceneChanges.filter(t=>t>=start&&t<=end).length;
+      windows.push({start,end,score,motion,cuts,detail,exposure,audio:audioScore,speech:speechScore,transcript:speechData.text,sceneCount});
     }
     windows.sort((a,b)=>b.score-a.score);const chosen=[];
     for(const item of windows){
@@ -168,12 +180,13 @@ async function analyzeHighlights(){
     $('exportAll').disabled=false;
     $('batchResults').classList.add('hidden');$('batchResults').innerHTML='';
     const box=$('candidates');
-    const intro=document.createElement('p');intro.className='hint';intro.textContent=transcriptSegments.length?'Classement V8.0 : indices visuels, audio et linguistiques issus de la transcription Whisper. Les indices de langage aident au tri, mais ne garantissent pas qu’un passage soit drôle ou viral.':audioEnergy.length?'Classement V8.0 : activité visuelle + intensité audio. Pour ajouter les indices liés aux paroles, lance d’abord la transcription Whisper puis relance l’analyse.':'Classement V8.0 : activité visuelle. Analyse audio indisponible sur ce navigateur.';box.append(intro);
+    const intro=document.createElement('p');intro.className='hint';intro.textContent=transcriptSegments.length?`${VERSION_LABEL} : indices visuels, audio et linguistiques issus de la transcription Whisper. Les indices de langage aident au tri, mais ne garantissent pas qu’un passage soit drôle ou viral.`:audioEnergy.length?`${VERSION_LABEL} : activité visuelle + intensité audio. Pour ajouter les indices liés aux paroles, lance d’abord la transcription Whisper puis relance l’analyse.`:`${VERSION_LABEL} : activité visuelle. Analyse audio indisponible sur ce navigateur.`;box.append(intro);
+    const sceneNote=document.createElement('p');sceneNote.className='scene-summary';sceneNote.textContent=`${sceneChanges.length} changement(s) de scène détecté(s) · les coupures sont estimées à partir des différences entre images.`;box.append(sceneNote);
     chosen.forEach((item,index)=>{
       const el=document.createElement('div');el.className='candidate';
       const info=document.createElement('div');info.className='candidate-info';
       const title=document.createElement('strong');title.textContent=`${index+1}. ${index===0?'Meilleur score visuel':'Passage proposé'}`;
-      const detail=document.createElement('small');detail.textContent=`${item.start.toFixed(1)} s → ${item.end.toFixed(1)} s · ${Math.round(item.score)}/100 · ${makeReasons(item)}${item.transcript?' · transcription prise en compte':''}`;
+      const detail=document.createElement('small');detail.textContent=`${item.start.toFixed(1)} s → ${item.end.toFixed(1)} s · ${Math.round(item.score)}/100 · ${makeReasons(item)}${item.transcript?' · transcription prise en compte':''} · ${item.sceneCount} changement(s) de scène`;
       const meter=document.createElement('div');meter.className='score-track';const fill=document.createElement('span');fill.style.width=`${item.score}%`;meter.append(fill);
       info.append(title,detail,meter);
       const apply=document.createElement('button');apply.className='btn secondary';apply.textContent='Choisir';
@@ -213,7 +226,7 @@ async function transcribeVideo(){
     const heading=document.createElement('strong');heading.textContent=`Transcription terminée · ${useful.length} segments`;results.append(heading);
     if(!useful.length){const p=document.createElement('p');p.textContent='Aucune parole détectée. Essaie avec une vidéo où les voix sont audibles.';results.append(p)}
     useful.forEach(seg=>{const row=document.createElement('div');row.className='transcript-row';const txt=document.createElement('span');txt.textContent=`${formatTime(seg.start)} · ${seg.text}`;const use=document.createElement('button');use.className='btn secondary';use.textContent='Créer un clip';use.onclick=()=>{const len=Number($('clipLength').value)||30;const start=Math.max(0,seg.start-len*.35),end=Math.min(duration(),start+len);$('start').value=start.toFixed(1);$('end').value=end.toFixed(1);video.currentTime=start;setStatus('Moment vocal sélectionné. Prévisualise puis exporte ton clip.');};row.append(txt,use);results.append(row)});
-    setStatus('Transcription locale terminée. Relance « Analyser » pour intégrer les paroles au classement V8.0.');
+    setStatus(`Transcription locale terminée. Relance « Analyser » pour intégrer les paroles au classement V${DISPLAY_VERSION}.`);
   }catch(err){results.innerHTML='';const p=document.createElement('p');p.textContent=err.message||'La transcription IA n’a pas pu démarrer sur ce navigateur. Essaie sur un ordinateur ou un navigateur récent.';results.append(p);setStatus('Transcription indisponible. L’analyse visuelle et audio reste utilisable.');}
   finally{btn.disabled=false;btn.textContent='Transcrire avec l’IA'}
 }
@@ -225,6 +238,9 @@ async function renderClip(s,e,onProgress){
   if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)throw new Error('Export vidéo non pris en charge par ce navigateur. Essaie Chrome ou Safari à jour.');
   const canvas=document.createElement('canvas');canvas.width=720;canvas.height=1280;
   const ctx=canvas.getContext('2d');const stream=canvas.captureStream(30);
+  const trackingCanvas=document.createElement('canvas');trackingCanvas.width=160;trackingCanvas.height=90;
+  const trackingCtx=trackingCanvas.getContext('2d',{willReadFrequently:true});
+  let previousTrackFrame=null,trackedCenter=.5;
   let sourceStream=null;
   try{sourceStream=video.captureStream?video.captureStream():video.mozCaptureStream?.()}catch{}
   if(sourceStream){for(const track of sourceStream.getAudioTracks())stream.addTrack(track)}
@@ -242,7 +258,28 @@ async function renderClip(s,e,onProgress){
   const draw=()=>{
     const vw=video.videoWidth,vh=video.videoHeight;if(!vw||!vh)return;
     const target=9/16,ratio=vw/vh;let sw,sh,sx,sy;
-    if(ratio>target){sh=vh;sw=vh*target;sx=(vw-sw)/2;sy=0}else{sw=vw;sh=vw/target;sx=0;sy=(vh-sh)/2}
+    if(ratio>target){
+      sh=vh;sw=vh*target;
+      // Suivi de mouvement léger : le centre du recadrage suit la zone où l'image change.
+      // Ce n'est pas une détection de personne ; le cadrage reste centré si le mouvement est faible.
+      trackingCtx.drawImage(video,0,0,160,90);
+      const frame=trackingCtx.getImageData(0,0,160,90).data;
+      if(previousTrackFrame){
+        const bins=new Float64Array(16);let total=0;
+        for(let y=2;y<88;y+=2)for(let x=2;x<158;x+=2){
+          const k=(y*160+x)*4,old=k;
+          const lum=.2126*frame[k]+.7152*frame[k+1]+.0722*frame[k+2];
+          const prev=.2126*previousTrackFrame[old]+.7152*previousTrackFrame[old+1]+.0722*previousTrackFrame[old+2];
+          const delta=Math.max(0,Math.abs(lum-prev)-16);
+          if(delta>0){const weight=delta;bins[Math.min(15,Math.floor(x/10))]+=weight;total+=weight;}
+        }
+        if(total>900){let weighted=0;for(let i=0;i<16;i++)weighted+=bins[i]*(i*10+5);const detected=weighted/total/160;trackedCenter=trackedCenter*.78+detected*.22;}
+      }
+      previousTrackFrame=new Uint8ClampedArray(frame);
+      const maxCenter=1-(sw/vw)/2,minCenter=(sw/vw)/2;
+      const center=Math.max(minCenter,Math.min(maxCenter,trackedCenter));
+      sx=center*vw-sw/2;sy=0;
+    }else{sw=vw;sh=vw/target;sx=0;sy=(vh-sh)/2}
     ctx.fillStyle='#000';ctx.fillRect(0,0,720,1280);ctx.drawImage(video,sx,sy,sw,sh,0,0,720,1280);
   };
   return await new Promise(async(resolve,reject)=>{
