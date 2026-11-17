@@ -106,3 +106,11 @@ button:focus-visible,a:focus-visible,.drop:focus-within{outline:2px solid #bba7f
 
 /* V1.8 — repères de changements de scène */
 .scene-summary{margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(167,139,250,.2);border-radius:10px;background:rgba(128,87,255,.08);color:#c9c1e5;font-size:10px;line-height:1.5}
+
+
+/* V1.9 — option de sous-titres incrustés */
+.subtitle-option{display:flex;align-items:flex-start;gap:12px;margin:14px 0;padding:14px 15px;border:1px solid var(--line,rgba(255,255,255,.12));border-radius:14px;background:rgba(255,255,255,.035);cursor:pointer}
+.subtitle-option input{width:19px;height:19px;margin:2px 0 0;accent-color:#fff;flex:0 0 auto}
+.subtitle-option span{display:grid;gap:4px}
+.subtitle-option strong{font-size:.92rem}
+.subtitle-option small{font-size:.78rem;opacity:.68;line-height:1.4}

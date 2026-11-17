@@ -1,6 +1,6 @@
 // Mise à jour GitHub Pages : vérifie version.json puis recharge les fichiers publiés.
-const APP_VERSION='8.1'; // identifiant technique de transition pour les anciennes installations
-const DISPLAY_VERSION='1.8';
+const APP_VERSION='8.2'; // identifiant technique monotone pour assurer la mise à jour depuis V1.8
+const DISPLAY_VERSION='1.9';
 const VERSION_LABEL='V'+DISPLAY_VERSION;
 const updateButton=document.getElementById('updateApp');
 const versionLabel=document.getElementById('appVersion');
@@ -239,6 +239,19 @@ async function renderClip(s,e,onProgress){
   const canvas=document.createElement('canvas');canvas.width=720;canvas.height=1280;
   const ctx=canvas.getContext('2d');const stream=canvas.captureStream(30);
   const trackingCanvas=document.createElement('canvas');trackingCanvas.width=160;trackingCanvas.height=90;
+  const captionsEnabled=Boolean($('burnSubtitles')?.checked&&transcriptSegments.length);
+  const captionSegments=captionsEnabled?transcriptSegments.filter(x=>x.end>=s&&x.start<=e):[];
+  function drawCaptions(time){
+    const active=captionSegments.filter(x=>time>=x.start&&time<=Math.max(x.end,x.start+.35));
+    if(!active.length)return;
+    const raw=active.map(x=>x.text).join(' ').replace(/\s+/g,' ').trim();if(!raw)return;
+    const maxWidth=620,fontSize=38,lineHeight=46;ctx.save();ctx.font=`700 ${fontSize}px system-ui, -apple-system, sans-serif`;
+    const words=raw.split(' '),lines=[];let line='';
+    for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word}else line=test;}if(line)lines.push(line);
+    const shown=lines.slice(-3),boxW=Math.min(660,Math.max(...shown.map(x=>ctx.measureText(x).width))+44),boxH=shown.length*lineHeight+28;
+    const x=(720-boxW)/2,y=1280-150-boxH;ctx.fillStyle='rgba(0,0,0,.72)';ctx.beginPath();ctx.roundRect(x,y,boxW,boxH,18);ctx.fill();
+    ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';shown.forEach((line,i)=>ctx.fillText(line,360,y+14+lineHeight*(i+.5),maxWidth));ctx.restore();
+  }
   const trackingCtx=trackingCanvas.getContext('2d',{willReadFrequently:true});
   let previousTrackFrame=null,trackedCenter=.5;
   let sourceStream=null;
@@ -281,6 +294,7 @@ async function renderClip(s,e,onProgress){
       sx=center*vw-sw/2;sy=0;
     }else{sw=vw;sh=vw/target;sx=0;sy=(vh-sh)/2}
     ctx.fillStyle='#000';ctx.fillRect(0,0,720,1280);ctx.drawImage(video,sx,sy,sw,sh,0,0,720,1280);
+    if(captionsEnabled)drawCaptions(video.currentTime);
   };
   return await new Promise(async(resolve,reject)=>{
     let raf=0,stopped=false;
@@ -309,7 +323,7 @@ $('export').onclick=async()=>{
   const s=Number($('start').value),e=Number($('end').value);if(!valid(s,e))return;
   $('export').disabled=true;
   try{
-    setStatus('Création du clip vertical… garde cette page ouverte.');
+    setStatus($('burnSubtitles')?.checked&&transcriptSegments.length?'Création du clip vertical avec sous-titres… garde cette page ouverte.':'Création du clip vertical… garde cette page ouverte.');
     const result=await renderClip(s,e,p=>setStatus(`Export du clip… ${p}%`));
     const url=URL.createObjectURL(result.blob);const a=$('download');
     a.href=url;a.download=`shortcut-ai-clip.${result.extension}`;a.textContent='↓ Télécharger mon clip';a.classList.remove('hidden');
@@ -330,7 +344,7 @@ $('exportAll').onclick=async()=>{
       const result=await renderClip(item.start,item.end,p=>{heading.textContent=`Création du Short ${i+1}/${chosenCandidates.length} · ${p}%`});
       const url=URL.createObjectURL(result.blob);results.push(url);
       const row=document.createElement('div');row.className='batch-item';
-      const label=document.createElement('span');label.textContent=`Short ${i+1} · ${item.start.toFixed(1)}–${item.end.toFixed(1)} s`;
+      const label=document.createElement('span');label.textContent=`Short ${i+1} · ${item.start.toFixed(1)}–${item.end.toFixed(1)} s${$('burnSubtitles')?.checked&&transcriptSegments.length?' · sous-titres':''}`;
       const link=document.createElement('a');link.href=url;link.download=`shortcut-ai-short-${i+1}.${result.extension}`;link.textContent='Télécharger';
       row.append(label,link);list.append(row);
     }

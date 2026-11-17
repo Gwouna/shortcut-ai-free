@@ -1,8 +1,8 @@
-# SHORTCUT AI — V1.8
+# SHORTCUT AI — V1.9
 
 SHORTCUT AI est un outil généraliste de création de clips courts à partir de vidéos importées : podcasts, interviews, sport, gaming, vlogs, humour, tutoriels et autres contenus.
 
-## Nouveautés V1.8
+## Nouveautés V1.9
 - Le classement peut intégrer la transcription Whisper, si elle a été lancée avant l'analyse.
 - Les fenêtres sont évaluées à partir des signaux visuels, de l'intensité audio et d'indices linguistiques simples.
 - Détection indicative des changements de plans à partir des différences entre images ; le nombre de coupures estimées apparaît dans les résultats.
@@ -30,4 +30,4 @@ SHORTCUT AI est un outil généraliste de création de clips courts à partir de
 Remplacer à la racine du dépôt : `index.html`, `styles.css`, `app.js`, `README.md` et `version.json`, puis committer les changements. Le bouton « Mettre à jour » vérifie `version.json` et recharge si une version plus récente est publiée.
 
 ## Numérotation des versions
-La version publique affichée est V1.8. Le champ `version` de `version.json` conserve temporairement un numéro technique croissant (`8.1`) pour que les installations V8.0 déjà publiées détectent cette mise à jour. La prochaine version publique V1.9 utilisera le numéro technique `8.2`.
+La version publique affichée est V1.9. Le champ `version` de `version.json` conserve temporairement un numéro technique croissant (`8.1`) pour que les installations V1.9 déjà publiées détectent cette mise à jour. La prochaine version publique V1.9 utilisera le numéro technique `8.2`.
